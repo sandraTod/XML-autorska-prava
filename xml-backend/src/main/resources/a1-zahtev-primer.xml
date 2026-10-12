@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Svi podaci i reference su izmišljeni; primer pre podnošenja, bez službenog dela. -->
+<a1:zahtevA1 xmlns:a1="https://example.org/autorska-prava/a1"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="https://example.org/autorska-prava/a1 a1-zahtev.xsd">
+  <a1:podaciGradjanina>
+    <a1:podnosilac>
+      <a1:pravnoLice>
+        <a1:poslovnoIme>Izmišljeni izdavač Dunav DOO</a1:poslovnoIme>
+        <a1:sediste>
+          <a1:ulica>Ulica izmišljenih priča</a1:ulica>
+          <a1:broj>12</a1:broj>
+          <a1:mesto>Novi Sad</a1:mesto>
+          <a1:postanskiBroj>21000</a1:postanskiBroj>
+          <a1:drzava>Srbija</a1:drzava>
+        </a1:sediste>
+      </a1:pravnoLice>
+      <a1:kontakt><a1:email>prijave@example.org</a1:email></a1:kontakt>
+    </a1:podnosilac>
+    <a1:delo>
+      <a1:naslov>Priče sa zamišljene obale</a1:naslov>
+      <a1:vrsta>Književno delo</a1:vrsta>
+      <a1:formaZapisa>Štampani tekst</a1:formaZapisa>
+      <a1:autorstvo>
+        <a1:poznatiAutori>
+          <a1:autor>
+            <a1:ziviAutor>
+              <a1:ime>Mila</a1:ime><a1:prezime>Primerić</a1:prezime>
+              <a1:adresa>
+                <a1:ulica>Izmišljena ulica</a1:ulica><a1:broj>7</a1:broj>
+                <a1:mesto>Beograd</a1:mesto><a1:drzava>Srbija</a1:drzava>
+              </a1:adresa>
+              <a1:drzavljanstvo>Republika Srbija</a1:drzavljanstvo>
+            </a1:ziviAutor>
+            <a1:pseudonimIliZnak>Obala</a1:pseudonimIliZnak>
+          </a1:autor>
+          <a1:autor>
+            <a1:preminuliAutor>
+              <a1:ime>Petar</a1:ime><a1:prezime>Izmišljenić</a1:prezime>
+              <a1:godinaSmrti>2020</a1:godinaSmrti>
+            </a1:preminuliAutor>
+          </a1:autor>
+        </a1:poznatiAutori>
+      </a1:autorstvo>
+      <a1:stvorenoURadnomOdnosu>false</a1:stvorenoURadnomOdnosu>
+      <a1:nacinKoriscenja>Objavljivanje zbirke priča.</a1:nacinKoriscenja>
+    </a1:delo>
+    <a1:potpis>
+      <a1:imePotpisnika>Ana</a1:imePotpisnika>
+      <a1:prezimePotpisnika>Primerić</a1:prezimePotpisnika>
+      <a1:referenca>https://example.org/prilozi/potpis-primer.png</a1:referenca>
+    </a1:potpis>
+    <a1:prilozi>
+      <a1:prilog>
+        <a1:naziv>Primer zbirke priča</a1:naziv><a1:tip>Primer autorskog dela</a1:tip>
+        <a1:referenca>https://example.org/prilozi/zbirka-primer.pdf</a1:referenca>
+      </a1:prilog>
+    </a1:prilozi>
+  </a1:podaciGradjanina>
+</a1:zahtevA1>

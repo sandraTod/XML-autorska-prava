@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:a1="https://example.org/autorska-prava/a1"
+           targetNamespace="https://example.org/autorska-prava/a1"
+           elementFormDefault="qualified" version="1.0">
+  <xs:annotation>
+    <xs:documentation xml:lang="sr">Prva verzija A-1 modela. Namespace je predlog.
+      Obrazac zahteva podnosioca, naslov, vrstu, formu zapisa i potpis.
+      Ostala ograničenja strukture predstavljaju odluke modelovanja.
+      Uslove između različitih delova dokumenta proveravaće poslovni sloj.
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:simpleType name="NeprazanTekstType">
+    <xs:restriction base="xs:token"><xs:minLength value="1"/></xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ReferencaType">
+    <xs:restriction base="xs:anyURI"><xs:minLength value="1"/></xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="OznakaType">
+    <xs:annotation><xs:documentation xml:lang="sr">Prisustvo elementa označava izabrani slučaj.</xs:documentation></xs:annotation>
+  </xs:complexType>
+  <xs:complexType name="AdresaType">
+    <xs:sequence>
+      <xs:element name="ulica" type="a1:NeprazanTekstType"/>
+      <xs:element name="broj" type="a1:NeprazanTekstType"/>
+      <xs:element name="mesto" type="a1:NeprazanTekstType"/>
+      <xs:element name="postanskiBroj" type="a1:NeprazanTekstType" minOccurs="0"/>
+      <xs:element name="drzava" type="a1:NeprazanTekstType"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="FizickoLiceType">
+    <xs:sequence>
+      <xs:element name="ime" type="a1:NeprazanTekstType"/>
+      <xs:element name="prezime" type="a1:NeprazanTekstType"/>
+      <xs:element name="adresa" type="a1:AdresaType"/>
+      <xs:element name="drzavljanstvo" type="a1:NeprazanTekstType"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PravnoLiceType">
+    <xs:sequence>
+      <xs:element name="poslovnoIme" type="a1:NeprazanTekstType"/>
+      <xs:element name="sediste" type="a1:AdresaType"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="KontaktType">
+    <xs:sequence>
+      <xs:element name="telefon" type="a1:NeprazanTekstType" minOccurs="0"/>
+      <xs:element name="email" type="a1:NeprazanTekstType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PodnosilacType">
+    <xs:sequence>
+      <xs:choice>
+        <xs:element name="fizickoLice" type="a1:FizickoLiceType"/>
+        <xs:element name="pravnoLice" type="a1:PravnoLiceType"/>
+      </xs:choice>
+      <xs:element name="kontakt" type="a1:KontaktType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PunomocnikType">
+    <xs:sequence>
+      <xs:element name="ime" type="a1:NeprazanTekstType"/>
+      <xs:element name="prezime" type="a1:NeprazanTekstType"/>
+      <xs:element name="adresa" type="a1:AdresaType"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PreminuliAutorType">
+    <xs:sequence>
+      <xs:element name="ime" type="a1:NeprazanTekstType"/>
+      <xs:element name="prezime" type="a1:NeprazanTekstType"/>
+      <xs:element name="godinaSmrti" type="xs:gYear"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AutorType">
+    <xs:sequence>
+      <xs:choice>
+        <xs:element name="ziviAutor" type="a1:FizickoLiceType"/>
+        <xs:element name="preminuliAutor" type="a1:PreminuliAutorType"/>
+      </xs:choice>
+      <xs:element name="pseudonimIliZnak" type="a1:NeprazanTekstType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AutoriType">
+    <xs:sequence><xs:element name="autor" type="a1:AutorType" maxOccurs="unbounded"/></xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PodnosilacAutorType">
+    <xs:sequence><xs:element name="pseudonimIliZnak" type="a1:NeprazanTekstType" minOccurs="0"/></xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AutorstvoType">
+    <xs:annotation><xs:documentation xml:lang="sr">Za više poznatih autora koristi se lista, čak i kada je podnosilac jedan od njih.
+      Anonimno delo se označava eksplicitno, bez izmišljenog imena autora.
+      Poslovni sloj mora sprečiti izbor podnosilacJeAutor za pravno lice.
+    </xs:documentation></xs:annotation>
+    <xs:choice>
+      <xs:element name="podnosilacJeAutor" type="a1:PodnosilacAutorType"/>
+      <xs:element name="poznatiAutori" type="a1:AutoriType"/>
+      <xs:element name="anonimniAutor" type="a1:OznakaType"/>
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="IzvornoDeloType">
+    <xs:sequence>
+      <xs:element name="naslov" type="a1:NeprazanTekstType"/>
+      <xs:element name="autorstvo" type="a1:AutorstvoType"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DeloType">
+    <xs:sequence>
+      <xs:element name="naslov" type="a1:NeprazanTekstType"/>
+      <xs:element name="alternativniNaslov" type="a1:NeprazanTekstType" minOccurs="0"/>
+      <xs:element name="izvornoDelo" type="a1:IzvornoDeloType" minOccurs="0"/>
+      <xs:element name="vrsta" type="a1:NeprazanTekstType"/>
+      <xs:element name="formaZapisa" type="a1:NeprazanTekstType"/>
+      <xs:element name="autorstvo" type="a1:AutorstvoType"/>
+      <xs:element name="stvorenoURadnomOdnosu" type="xs:boolean" minOccurs="0"/>
+      <xs:element name="nacinKoriscenja" type="a1:NeprazanTekstType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PotpisType">
+    <xs:annotation><xs:documentation xml:lang="sr">OTVORENO PITANJE: zadatak ne određuje elektronsko predstavljanje potpisa.
+      Referenca je privremeni predlog veze ka prikazu potpisa. Njeno prisustvo ne dokazuje
+      autentičnost potpisa. Ne koristi se kriptografsko potpisivanje.
+    </xs:documentation></xs:annotation>
+    <xs:sequence>
+      <xs:element name="imePotpisnika" type="a1:NeprazanTekstType"/>
+      <xs:element name="prezimePotpisnika" type="a1:NeprazanTekstType"/>
+      <xs:element name="referenca" type="a1:ReferencaType"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PrilogType">
+    <xs:sequence>
+      <xs:element name="naziv" type="a1:NeprazanTekstType"/>
+      <xs:element name="tip" type="a1:NeprazanTekstType"/>
+      <xs:element name="referenca" type="a1:ReferencaType"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PriloziType">
+    <xs:sequence><xs:element name="prilog" type="a1:PrilogType" maxOccurs="unbounded"/></xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PodaciGradjaninaType">
+    <xs:sequence>
+      <xs:element name="podnosilac" type="a1:PodnosilacType"/>
+      <xs:element name="punomocnik" type="a1:PunomocnikType" minOccurs="0"/>
+      <xs:element name="delo" type="a1:DeloType"/>
+      <xs:element name="potpis" type="a1:PotpisType"/>
+      <xs:element name="prilozi" type="a1:PriloziType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SluzbeniDeoType">
+    <xs:sequence>
+      <xs:element name="brojPrijave" type="a1:NeprazanTekstType"/>
+      <xs:element name="datumPodnosenja" type="xs:date"/>
+      <xs:element name="primljeniPrilozi" type="a1:PriloziType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ZahtevA1Type">
+    <xs:sequence>
+      <xs:element name="podaciGradjanina" type="a1:PodaciGradjaninaType"/>
+      <xs:element name="sluzbeniDeo" type="a1:SluzbeniDeoType" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="a1:ReferencaType" use="optional"/>
+  </xs:complexType>
+  <xs:element name="zahtevA1" type="a1:ZahtevA1Type"/>
+</xs:schema>
