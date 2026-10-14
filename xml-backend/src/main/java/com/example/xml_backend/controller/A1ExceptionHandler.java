@@ -1,0 +1,52 @@
+package com.example.xml_backend.controller;
+
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import com.example.xml_backend.repository.A1RepositoryException;
+import com.example.xml_backend.service.exception.InvalidA1XmlException;
+import com.example.xml_backend.service.exception.ForbiddenA1FieldsException;
+
+@RestControllerAdvice(assignableTypes = A1Controller.class)
+public class A1ExceptionHandler {
+	
+	
+    @ExceptionHandler({InvalidA1XmlException.class, HttpMessageNotReadableException.class})
+    public ResponseEntity<String> invalidXml(Exception ignored) {
+        return error(400, "Neispravan A-1 XML.");
+    }
+
+    @ExceptionHandler(ForbiddenA1FieldsException.class)
+    public ResponseEntity<String> forbiddenFields(ForbiddenA1FieldsException ignored) {
+        return error(400, "Unos polja id i sluzbeniDeo nije dozvoljen.");
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> badRequest(Exception ignored) {
+        return error(400, "Neispravan A-1 zahtev.");
+    }
+
+    @ExceptionHandler(A1RepositoryException.class)
+    public ResponseEntity<String> unavailable(A1RepositoryException ignored) {
+        return error(503, "Baza podataka trenutno nije dostupna.");
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<String> unsupportedMediaType(Exception ignored) {
+        return error(415, "Očekivan je application/xml.");
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> internalError(Exception ignored) {
+        return error(500, "Interna greška pri obradi zahteva.");
+    }
+
+    static ResponseEntity<String> error(int status, String message) {
+        return ResponseEntity.status(status).contentType(MediaType.parseMediaType("application/xml;charset=UTF-8"))
+                .body("<?xml version=\"1.0\" encoding=\"UTF-8\"?><greska><status>"
+                        + status + "</status><poruka>" + message + "</poruka></greska>");
+    }
+}

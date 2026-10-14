@@ -91,7 +91,7 @@ public class ExistA1Repository implements A1Repository {
     private HttpRequest.Builder request(URI uri) {
         // Provera tek pri operaciji omogućava pokretanje aplikacije i testova bez baze.
         if (password.isEmpty()) {
-            throw new IllegalStateException("Postavi environment promenljivu EXIST_DB_PASSWORD");
+            throw new A1RepositoryException("Postavi environment promenljivu EXIST_DB_PASSWORD");
         }
         String credentials = Base64.getEncoder().encodeToString(
                 (username + ":" + password).getBytes(StandardCharsets.UTF_8));
@@ -105,14 +105,14 @@ public class ExistA1Repository implements A1Repository {
             return client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new IllegalStateException("eXist HTTP operacija je prekinuta");
+            throw new A1RepositoryException("eXist HTTP operacija je prekinuta");
         } catch (IOException e) {
             // Ne uključujemo zaglavlja, telo odgovora ili kredencijale u poruku greške.
-            throw new IllegalStateException("eXist nije dostupan ili je HTTP timeout istekao");
+            throw new A1RepositoryException("eXist nije dostupan ili je HTTP timeout istekao");
         }
     }
 
-    private IllegalStateException httpFailure(String operation, int status) {
-        return new IllegalStateException("eXist " + operation + " nije uspelo (HTTP " + status + ")");
+    private A1RepositoryException httpFailure(String operation, int status) {
+        return new A1RepositoryException("eXist " + operation + " nije uspelo (HTTP " + status + ")");
     }
 }
