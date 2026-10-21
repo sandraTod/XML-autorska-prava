@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SAMO ZA RAZVOJ: izmišljeni podaci i javna test lozinka; nije stvarni nalog. -->
+<r:registracija xmlns:r="https://example.org/autorska-prava/registracija"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="https://example.org/autorska-prava/registracija registracija.xsd">
+  <r:ime>Mila</r:ime>
+  <r:prezime>Primerić</r:prezime>
+  <r:email>mila.primer@example.org</r:email>
+  <r:lozinka>RazvojTest123!</r:lozinka>
+</r:registracija>

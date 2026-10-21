@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SAMO ZA RAZVOJ: izmišljeni nalog. BCrypt hash odgovara javnoj test lozinci
+     iz registracija-primer.xml (cost 10); ne koristiti za stvarne naloge. -->
+<k:korisnik xmlns:k="https://example.org/autorska-prava/korisnik"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="https://example.org/autorska-prava/korisnik korisnik.xsd"
+            id="https://example.org/autorska-prava/nalozi/85cf123d-9f21-4f87-a0fa-c7122ace1090">
+  <k:ime>Mila</k:ime>
+  <k:prezime>Primerić</k:prezime>
+  <k:email>mila.primer@example.org</k:email>
+  <k:lozinkaHash>$2a$10$/3ag76J65qc6oVSRXq8SYeqwP501sfxt7C.WYyunvclecrB9PtILK</k:lozinkaHash>
+  <k:uloga>GRADJANIN</k:uloga>
+</k:korisnik>

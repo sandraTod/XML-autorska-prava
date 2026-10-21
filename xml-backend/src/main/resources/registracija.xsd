@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:r="https://example.org/autorska-prava/registracija"
+           targetNamespace="https://example.org/autorska-prava/registracija" elementFormDefault="qualified">
+  <xs:annotation><xs:documentation xml:lang="sr">Registracija je samo za građane. ID i uloga nisu deo ulaza.
+    Službenici su predefinisani; naknadno dodavanje nije dozvoljeno.
+  </xs:documentation></xs:annotation>
+  <xs:simpleType name="NeprazanTekstType">
+    <xs:restriction base="xs:token"><xs:minLength value="1"/></xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="RegistracijaType">
+    <xs:sequence>
+      <xs:element name="ime" type="r:NeprazanTekstType"/>
+      <xs:element name="prezime" type="r:NeprazanTekstType"/>
+      <xs:element name="email" type="r:NeprazanTekstType"/>
+      <xs:element name="lozinka" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="registracija" type="r:RegistracijaType"/>
+</xs:schema>

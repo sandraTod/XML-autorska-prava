@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:k="https://example.org/autorska-prava/korisnik"
+           targetNamespace="https://example.org/autorska-prava/korisnik" elementFormDefault="qualified">
+  <xs:annotation><xs:documentation xml:lang="sr">Interni dokument naloga, bez javnog endpointa za čitanje.
+    Pri registraciji sistem dodeljuje GRADJANIN. SLUZBENIK je samo za predefinisane naloge.
+    Dokument čuva samo hash lozinke, nikada običnu lozinku.
+  </xs:documentation></xs:annotation>
+  <xs:simpleType name="NeprazanTekstType">
+    <xs:restriction base="xs:token"><xs:minLength value="1"/></xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="NalogUrlType">
+    <xs:restriction base="xs:anyURI">
+      <xs:minLength value="1"/>
+      <xs:pattern value="https?://[^/\s?#]+/[^\s?#]+"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="UlogaType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="GRADJANIN"/>
+      <xs:enumeration value="SLUZBENIK"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="KorisnikType">
+    <xs:sequence>
+      <xs:element name="ime" type="k:NeprazanTekstType"/>
+      <xs:element name="prezime" type="k:NeprazanTekstType"/>
+      <xs:element name="email" type="k:NeprazanTekstType"/>
+      <xs:element name="lozinkaHash" type="k:NeprazanTekstType"/>
+      <xs:element name="uloga" type="k:UlogaType"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="k:NalogUrlType" use="required"/>
+  </xs:complexType>
+  <xs:element name="korisnik" type="k:KorisnikType"/>
+</xs:schema>

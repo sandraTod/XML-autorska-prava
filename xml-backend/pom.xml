@@ -31,6 +31,10 @@
 	</properties>
 	<dependencies>
 		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-crypto</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>jakarta.xml.bind</groupId>
 			<artifactId>jakarta.xml.bind-api</artifactId>
 		</dependency>
@@ -73,15 +77,36 @@
 						<goals>
 							<goal>xjc</goal>
 						</goals>
+						<configuration>
+							<sources><source>${project.basedir}/src/main/resources/a1-zahtev.xsd</source></sources>
+							<packageName>com.example.xml_backend.model.a1</packageName>
+							<outputDirectory>${project.build.directory}/generated-sources/jaxb/a1</outputDirectory>
+						</configuration>
+					</execution>
+					<execution>
+						<id>generate-registracija-model</id>
+						<phase>generate-sources</phase>
+						<goals><goal>xjc</goal></goals>
+						<configuration>
+							<sources><source>${project.basedir}/src/main/resources/registracija.xsd</source></sources>
+							<packageName>com.example.xml_backend.model.registracija</packageName>
+							<outputDirectory>${project.build.directory}/generated-sources/jaxb/registracija</outputDirectory>
+						</configuration>
+					</execution>
+					<execution>
+						<id>generate-korisnik-model</id>
+						<phase>generate-sources</phase>
+						<goals><goal>xjc</goal></goals>
+						<configuration>
+							<sources><source>${project.basedir}/src/main/resources/korisnik.xsd</source></sources>
+							<packageName>com.example.xml_backend.model.korisnik</packageName>
+							<outputDirectory>${project.build.directory}/generated-sources/jaxb/korisnik</outputDirectory>
+						</configuration>
 					</execution>
 				</executions>
 				<configuration>
-					<sources>
-						<source>${project.basedir}/src/main/resources/a1-zahtev.xsd</source>
-					</sources>
-					<packageName>com.example.xml_backend.model.a1</packageName>
-					<!-- XJC also registers this directory as a compile source root. -->
-					<outputDirectory>${project.build.directory}/generated-sources/jaxb</outputDirectory>
+					<!-- Each execution clears only its own output directory and registers it as a source root. -->
+					<clearOutputDir>true</clearOutputDir>
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
