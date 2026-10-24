@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SAMO ZA RAZVOJ: token je NEFUNKCIONALNA primer-vrednost, nije JWT.
+     Pretpostavljena prijava: 2026-10-23T10:00:00Z; istek je 24 sata kasnije. -->
+<p:prijavaOdgovor xmlns:p="https://example.org/autorska-prava/prijava-odgovor"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="https://example.org/autorska-prava/prijava-odgovor prijava-odgovor.xsd">
+  <p:token>NEFUNKCIONALNI-RAZVOJNI-TOKEN-NIJE-JWT</p:token>
+  <p:expiresAt>2026-10-24T10:00:00Z</p:expiresAt>
+</p:prijavaOdgovor>

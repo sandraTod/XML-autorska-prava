@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:p="https://example.org/autorska-prava/prijava"
+           targetNamespace="https://example.org/autorska-prava/prijava"
+           elementFormDefault="qualified">
+  <xs:simpleType name="NeprazanTekstType">
+    <xs:restriction base="xs:token"><xs:minLength value="1"/></xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="PrijavaType">
+    <xs:sequence>
+      <xs:element name="email" type="p:NeprazanTekstType"/>
+      <xs:element name="lozinka" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="prijava" type="p:PrijavaType"/>
+</xs:schema>

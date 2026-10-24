@@ -21,6 +21,8 @@ Tekst XQuery-a je statičan. Ne dodavati korisnike ručno mimo ovog pravila.
 
 Iz `xml-backend`, u PowerShell terminalu koji koristi Java 17:
 
+Razvojni JWT ključ je već podešen u `application.properties`, prema `PRIJAVA.md`.
+
 ```powershell
 $credential = Get-Credential -UserName admin -Message 'eXist-db pristup'
 $env:EXIST_DB_USERNAME = $credential.UserName

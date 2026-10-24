@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SAMO ZA RAZVOJ: izmišljeni podaci i javna test lozinka. -->
+
+<p:prijava xmlns:p="https://example.org/autorska-prava/prijava"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="https://example.org/autorska-prava/prijava prijava.xsd">
+  <p:email>mila.primer@example.org</p:email>
+  <p:lozinka>RazvojTest123!</p:lozinka>
+</p:prijava>

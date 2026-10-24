@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:p="https://example.org/autorska-prava/prijava-odgovor"
+           targetNamespace="https://example.org/autorska-prava/prijava-odgovor"
+           elementFormDefault="qualified">
+  <xs:simpleType name="NeprazanTokenType">
+    <xs:restriction base="xs:token"><xs:minLength value="1"/></xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="PrijavaOdgovorType">
+    <xs:sequence>
+      <xs:element name="token" type="p:NeprazanTokenType"/>
+      <xs:element name="expiresAt" type="xs:dateTime"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="prijavaOdgovor" type="p:PrijavaOdgovorType"/>
+</xs:schema>

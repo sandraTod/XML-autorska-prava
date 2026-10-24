@@ -28,8 +28,26 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<jjwt.version>0.13.0</jjwt.version>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>${jjwt.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>${jjwt.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>${jjwt.version}</version>
+			<scope>runtime</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-crypto</artifactId>
@@ -101,6 +119,26 @@
 							<sources><source>${project.basedir}/src/main/resources/korisnik.xsd</source></sources>
 							<packageName>com.example.xml_backend.model.korisnik</packageName>
 							<outputDirectory>${project.build.directory}/generated-sources/jaxb/korisnik</outputDirectory>
+						</configuration>
+					</execution>
+					<execution>
+						<id>generate-prijava-model</id>
+						<phase>generate-sources</phase>
+						<goals><goal>xjc</goal></goals>
+						<configuration>
+							<sources><source>${project.basedir}/src/main/resources/prijava.xsd</source></sources>
+							<packageName>com.example.xml_backend.model.prijava</packageName>
+							<outputDirectory>${project.build.directory}/generated-sources/jaxb/prijava</outputDirectory>
+						</configuration>
+					</execution>
+					<execution>
+						<id>generate-prijava-odgovor-model</id>
+						<phase>generate-sources</phase>
+						<goals><goal>xjc</goal></goals>
+						<configuration>
+							<sources><source>${project.basedir}/src/main/resources/prijava-odgovor.xsd</source></sources>
+							<packageName>com.example.xml_backend.model.prijavaodgovor</packageName>
+							<outputDirectory>${project.build.directory}/generated-sources/jaxb/prijavaodgovor</outputDirectory>
 						</configuration>
 					</execution>
 				</executions>
