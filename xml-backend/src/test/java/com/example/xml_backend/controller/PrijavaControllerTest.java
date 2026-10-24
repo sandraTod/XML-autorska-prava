@@ -29,7 +29,7 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import com.example.xml_backend.config.JwtConfiguration;
+import com.example.xml_backend.security.JwtConfiguration;
 import com.example.xml_backend.model.korisnik.KorisnikType;
 import com.example.xml_backend.model.korisnik.UlogaType;
 import com.example.xml_backend.repository.KorisnikRepository;

@@ -1,4 +1,4 @@
-package com.example.xml_backend.config;
+package com.example.xml_backend.security;
 
 import java.time.Clock;
 import java.util.Base64;

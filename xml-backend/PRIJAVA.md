@@ -12,13 +12,14 @@ Ovde zadržavamo dogovorene pakete i razdvajamo iste odgovornosti:
 | `JwtAuthenticationRequest` | XSD-generisani `model.prijava.PrijavaType` |
 | `JwtAuthenticationResponse` | XSD-generisani `model.prijavaodgovor.PrijavaOdgovorType` |
 | Deo `JwtTokenUtil` za izdavanje | `service.JwtTokenService` / `service.impl.JwtTokenServiceImpl` |
-| Konfiguracija ključa | `config.JwtConfiguration`, razvojni ključ iz `application.properties` |
+| Konfiguracija ključa | `security.JwtConfiguration`, razvojni ključ iz `application.properties` |
 
 Koristi se constructor injection. Ne dodajemo paralelni kontroler, ručne kopije
 JAXB modela, `UserDetails` adaptere ili authentication manager dok za njima nema
 potrebe. Iz referentnog projekta se ne prenose ispisi kredencijala, refresh
 funkcije, pravila za ignorisanje isteka, aktivacija naloga, CORS politika,
-JWT filter ili `SecurityFilterChain`. Provera tokena i zaštita ruta slede kasnije.
+Kod za filter i `SecurityFilterChain` nije kopiran iz reference; prilagođena
+implementacija za ovaj projekat opisana je u `SECURITY.md`.
 
 ## Tok prijave
 
@@ -76,8 +77,9 @@ Pogrešna lozinka ili nepoznat e-mail: 401 sa istom porukom.
 Neispravan XML: 400. Nedostupna baza: 503. Sve navedene greške su XML.
 Neispravan sačuvani nalog ili neočekivana interna greška: generički XML 500.
 
-U ovom koraku token se samo izdaje: ne postoje JWT filter, zaštićene rute,
-Spring Security autorizacija ni promene prava pristupa postojećim rutama.
+JWT filter sada proverava tokene i štiti A-1 rute prema pravilima u `SECURITY.md`.
+Registracija i prijava ostaju javni POST endpoint-i; vlasništvo nad zahtevima
+još nije povezano.
 
 ## Automatske i ručne provere
 
