@@ -1,6 +1,8 @@
 package com.example.xml_backend.repository;
 
+import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
+import javax.xml.stream.XMLOutputFactory;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
@@ -15,7 +17,6 @@ import java.util.Optional;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.stream.XMLOutputFactory;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -29,8 +30,6 @@ import com.example.xml_backend.service.EmailNormalizer;
 @Repository
 public class ExistKorisnikRepository implements KorisnikRepository {
 	
-    private static final String REST_NAMESPACE = "http://exist.sourceforge.net/NS/exist";
-    private static final String VALUE_NAMESPACE = "http://exist-db.org/xquery/types/serialized";
     private final URI endpoint;
     private final String authorization;
     private final Duration timeout;
@@ -133,11 +132,21 @@ public class ExistKorisnikRepository implements KorisnikRepository {
         }
     }
 
-    private String queryBody(String query, Map<String, String> variables) throws Exception {
+    private static String loadQuery(String filename) {
+        try (var input = ExistKorisnikRepository.class.getResourceAsStream("/exist/" + filename)) {
+            if (input == null) {
+                throw new IllegalStateException("Nedostaje XQuery resurs");
+            }
+            return new String(input.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException exception) {
+            throw new IllegalStateException("Nije moguće učitati XQuery resurs");
+        }
+    }
+    private String queryBody(String query, Map<String, String> variables) throws XMLStreamException {
         StringWriter output = new StringWriter();
         var writer = XMLOutputFactory.newFactory().createXMLStreamWriter(output);
         writer.writeStartElement("query");
-        writer.writeDefaultNamespace(REST_NAMESPACE);
+        writer.writeDefaultNamespace("http://exist.sourceforge.net/NS/exist");
         writer.writeAttribute("wrap", "no");
         writer.writeStartElement("text");
         writer.writeCharacters(query);
@@ -150,10 +159,10 @@ public class ExistKorisnikRepository implements KorisnikRepository {
             writer.writeCharacters(variable.getKey());
             writer.writeEndElement();
             writer.writeEndElement();
-            writer.writeStartElement("s", "sequence", VALUE_NAMESPACE);
-            writer.writeNamespace("s", VALUE_NAMESPACE);
+            writer.writeStartElement("s", "sequence", "http://exist-db.org/xquery/types/serialized");
+            writer.writeNamespace("s", "http://exist-db.org/xquery/types/serialized");
             writer.writeAttribute("item-type", "xs:string");
-            writer.writeStartElement("s", "value", VALUE_NAMESPACE);
+            writer.writeStartElement("s", "value", "http://exist-db.org/xquery/types/serialized");
             writer.writeAttribute("type", "xs:string");
             writer.writeCharacters(variable.getValue());
             writer.writeEndElement();
@@ -164,16 +173,5 @@ public class ExistKorisnikRepository implements KorisnikRepository {
         writer.writeEndElement();
         writer.close();
         return output.toString();
-    }
-
-    private static String loadQuery(String filename) {
-        try (var input = ExistKorisnikRepository.class.getResourceAsStream("/exist/" + filename)) {
-            if (input == null) {
-                throw new IllegalStateException("Nedostaje XQuery resurs");
-            }
-            return new String(input.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException exception) {
-            throw new IllegalStateException("Nije moguće učitati XQuery resurs");
-        }
     }
 }

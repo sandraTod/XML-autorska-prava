@@ -19,7 +19,7 @@ import com.example.xml_backend.service.impl.A1ServiceImpl;
 class A1ServiceAuthorizationTest {
     private final A1Repository repository = mock(A1Repository.class);
     private final A1XmlService xmlService = mock(A1XmlService.class);
-    private final A1Service service = new A1ServiceImpl(xmlService, repository, "https://example.org/a1");
+    private final A1Service service = new A1ServiceImpl(xmlService, repository, mock(A1ListaXmlService.class), "https://example.org/a1");
 
     @AfterEach
     void clearContext() {
@@ -42,6 +42,7 @@ class A1ServiceAuthorizationTest {
     private void assertUnauthenticated() {
         assertThrows(AuthenticationCredentialsNotFoundException.class, () -> service.create("<broken>"));
         assertThrows(AuthenticationCredentialsNotFoundException.class, () -> service.findById("test"));
+        assertThrows(AuthenticationCredentialsNotFoundException.class, () -> service.findMyRequests());
     }
 
     @Test
@@ -50,9 +51,11 @@ class A1ServiceAuthorizationTest {
                 "https://example.org/nalozi/test", null, List.of(new SimpleGrantedAuthority("ROLE_OTHER"))));
         assertThrows(AccessDeniedException.class, () -> service.create("<broken>"));
         assertThrows(AccessDeniedException.class, () -> service.findById("test"));
+        assertThrows(AccessDeniedException.class, () -> service.findMyRequests());
         SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
                 "https://example.org/nalozi/official", null, List.of(new SimpleGrantedAuthority("ROLE_SLUZBENIK"))));
         assertThrows(AccessDeniedException.class, () -> service.create("<broken>"));
+        assertThrows(AccessDeniedException.class, () -> service.findMyRequests());
         verifyNoInteractions(repository, xmlService);
     }
 }

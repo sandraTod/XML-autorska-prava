@@ -11,6 +11,8 @@ import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.io.ByteArrayInputStream;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 class ExistA1RepositoryTest {
     private HttpServer server;
@@ -71,5 +73,37 @@ class ExistA1RepositoryTest {
             assertThrows(IllegalArgumentException.class, () -> repository.save(id, "<test/>"));
         }
         assertEquals(0, requests.get());
+    }
+
+    @Test
+    void listQueryBindsOwnerAndDoesNotHideHttpOrConnectionErrors() throws Exception {
+        var received = new AtomicReference<String>();
+        String emptyList = "<l:listaZahteva xmlns:l='https://example.org/autorska-prava/a1-lista'/>";
+        server.createContext("/exist/rest/db", exchange -> {
+            received.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+            byte[] body = emptyList.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(status.get(), body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        String owner = "https://example.org/nalozi/test-'&-č";
+        assertEquals(emptyList, repository.findByOwner(owner));
+        var factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        var document = factory.newDocumentBuilder().parse(new ByteArrayInputStream(received.get().getBytes(StandardCharsets.UTF_8)));
+        String query = document.getElementsByTagNameNS("http://exist.sourceforge.net/NS/exist", "text").item(0).getTextContent();
+        assertFalse(query.contains(owner));
+        assertTrue(query.contains("declare variable $vlasnikId as xs:string external"));
+        assertTrue(query.contains("a1:zahtevA1[@vlasnikId = $vlasnikId]"));
+        assertFalse(query.contains("order by"));
+        assertTrue(query.contains("xmldb:get-child-collections('/db')"));
+        assertFalse(query.contains("xmldb:collection-available("));
+        assertEquals(owner, document.getElementsByTagNameNS("http://exist-db.org/xquery/types/serialized", "value").item(0).getTextContent());
+        for (int code : new int[]{401, 403, 404, 500}) {
+            status.set(code);
+            assertThrows(A1RepositoryException.class, () -> repository.findByOwner(owner));
+        }
+        server.stop(0);
+        assertThrows(A1RepositoryException.class, () -> repository.findByOwner(owner));
     }
 }

@@ -1,6 +1,8 @@
 package com.example.xml_backend.repository;
 
 import java.io.IOException;
+import javax.xml.stream.XMLOutputFactory;
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -10,7 +12,9 @@ import java.time.Duration;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Map;
 import java.util.regex.Pattern;
+import javax.xml.stream.XMLStreamException;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -25,6 +29,7 @@ public class ExistA1Repository implements A1Repository {
     private final String password;
     private final Duration requestTimeout;
     private final HttpClient client;
+    private final String ownerQuery = loadOwnerQuery();
 
     public ExistA1Repository(
             @Value("${exist-db.url}") String url,
@@ -81,6 +86,42 @@ public class ExistA1Repository implements A1Repository {
         return Optional.of(response.body());
     }
 
+    @Override
+    public String findByOwner(String vlasnikId) {
+        if (vlasnikId == null || vlasnikId.isBlank()) {
+            throw new IllegalArgumentException("Vlasnik je obavezan");
+        }
+        return execute(ownerQuery, Map.of("vlasnikId", vlasnikId));
+    }
+
+    private String execute(String query, Map<String, String> variables) {
+        final String body;
+        try {
+            body = queryBody(query, variables);
+        } catch (XMLStreamException exception) {
+            throw new A1RepositoryException("Neuspešna priprema upita");
+        }
+        var request = request(URI.create(baseUri + "/db"))
+                .header("Content-Type", "application/xml; charset=UTF-8")
+                .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8)).build();
+        var response = send(request);
+        if (response.statusCode() != 200) {
+            throw httpFailure("čitanje liste", response.statusCode());
+        }
+        return response.body();
+    }
+
+    private static String loadOwnerQuery() {
+        try (var input = ExistA1Repository.class.getResourceAsStream("/exist/a1-find-by-owner.xq")) {
+            if (input == null) {
+                throw new IllegalStateException("Nedostaje upit za A-1 listu");
+            }
+            return new String(input.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException exception) {
+            throw new IllegalStateException("Nije moguće učitati upit za A-1 listu");
+        }
+    }
+
     private URI documentUri(String documentId) {
         if (documentId == null || !SAFE_ID.matcher(documentId).matches()) {
             throw new IllegalArgumentException("documentId: 1–100 slova, cifara, _ ili -; prvo slovo ili cifra, bez .xml");
@@ -89,7 +130,6 @@ public class ExistA1Repository implements A1Repository {
     }
 
     private HttpRequest.Builder request(URI uri) {
-        // Provera tek pri operaciji omogućava pokretanje aplikacije i testova bez baze.
         if (password.isEmpty()) {
             throw new A1RepositoryException("Postavi environment promenljivu EXIST_DB_PASSWORD");
         }
@@ -107,12 +147,45 @@ public class ExistA1Repository implements A1Repository {
             Thread.currentThread().interrupt();
             throw new A1RepositoryException("eXist HTTP operacija je prekinuta");
         } catch (IOException e) {
-            // Ne uključujemo zaglavlja, telo odgovora ili kredencijale u poruku greške.
             throw new A1RepositoryException("eXist nije dostupan ili je HTTP timeout istekao");
         }
     }
 
     private A1RepositoryException httpFailure(String operation, int status) {
         return new A1RepositoryException("eXist " + operation + " nije uspelo (HTTP " + status + ")");
+    }
+    
+    
+    private String queryBody(String query, Map<String, String> variables) throws XMLStreamException {
+        StringWriter output = new StringWriter();
+        var writer = XMLOutputFactory.newFactory().createXMLStreamWriter(output);
+        writer.writeStartElement("query");
+        writer.writeDefaultNamespace("http://exist.sourceforge.net/NS/exist");
+        writer.writeAttribute("wrap", "no");
+        writer.writeStartElement("text");
+        writer.writeCharacters(query);
+        writer.writeEndElement();
+        writer.writeStartElement("variables");
+        for (Map.Entry<String, String> variable : variables.entrySet()) {
+            writer.writeStartElement("variable");
+            writer.writeStartElement("qname");
+            writer.writeStartElement("localname");
+            writer.writeCharacters(variable.getKey());
+            writer.writeEndElement();
+            writer.writeEndElement();
+            writer.writeStartElement("s", "sequence", "http://exist-db.org/xquery/types/serialized");
+            writer.writeNamespace("s", "http://exist-db.org/xquery/types/serialized");
+            writer.writeAttribute("item-type", "xs:string");
+            writer.writeStartElement("s", "value", "http://exist-db.org/xquery/types/serialized");
+            writer.writeAttribute("type", "xs:string");
+            writer.writeCharacters(variable.getValue());
+            writer.writeEndElement();
+            writer.writeEndElement();
+            writer.writeEndElement();
+        }
+        writer.writeEndElement();
+        writer.writeEndElement();
+        writer.close();
+        return output.toString();
     }
 }

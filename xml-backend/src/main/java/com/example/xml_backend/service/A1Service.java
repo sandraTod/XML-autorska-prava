@@ -8,6 +8,7 @@ public interface A1Service {
 	
     CreatedDocument create(String xml);
     Optional<String> findById(String documentId);
+    String findMyRequests();
 
     record CreatedDocument(URI location, String xml) {}
 }

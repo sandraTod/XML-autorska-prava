@@ -20,6 +20,8 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +43,12 @@ import com.example.xml_backend.repository.A1Repository;
 import com.example.xml_backend.repository.KorisnikRepository;
 import com.example.xml_backend.service.JwtTokenService;
 import com.example.xml_backend.service.A1XmlService;
+import com.example.xml_backend.service.A1ListaXmlService;
+import com.example.xml_backend.model.a1.ListaZahtevaType;
+import com.example.xml_backend.model.a1.ZahtevA1Type;
+import com.example.xml_backend.repository.A1RepositoryException;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doReturn;
 import com.example.xml_backend.service.KorisnikXmlService;
 import com.example.xml_backend.service.PrijavaOdgovorXmlService;
 import io.jsonwebtoken.Jwts;
@@ -56,6 +64,7 @@ class JwtSecurityTest {
     @Autowired private WebApplicationContext context;
     @Autowired private JwtTokenService tokens;
     @Autowired private A1XmlService a1Xml;
+    @Autowired private A1ListaXmlService listXml;
     @Autowired private KorisnikXmlService userXml;
     @Autowired private PrijavaOdgovorXmlService responseXml;
     @Autowired private SecretKey signingKey;
@@ -214,5 +223,53 @@ class JwtSecurityTest {
         assertTrue(context.getBeansOfType(JwtAuthenticationFilter.class).isEmpty());
         assertTrue(context.getBeansOfType(UserDetailsService.class).isEmpty());
         assertFalse(securityChain.getFilters().stream().anyMatch(filter -> filter.getClass().getSimpleName().equals("BasicAuthenticationFilter")));
+    }
+
+    @Test
+    void myRequestsReturnsValidatedRepositoryResults() throws Exception {
+        String owner = user.getId();
+        var list = new ListaZahtevaType();
+        for (String id : new String[]{"b", "a"}) {
+            var document = a1Xml.fromXml(example);
+            document.setId("https://example.org/a1/" + id);
+            document.setVlasnikId(owner);
+            list.getZahtevA1().add(document);
+        }
+        when(a1Repository.findByOwner(owner)).thenReturn(listXml.toXml(list));
+        var response = mvc.perform(get("/api/a1/zahtevi").header("Authorization", bearer(UlogaType.GRADJANIN)))
+                .andExpect(status().isOk()).andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_XML))
+                .andReturn().getResponse();
+        var result = listXml.fromXml(response.getContentAsString(StandardCharsets.UTF_8));
+        assertEquals(2, result.getZahtevA1().size());
+        assertEquals(Set.of("https://example.org/a1/a", "https://example.org/a1/b"),
+                result.getZahtevA1().stream().map(ZahtevA1Type::getId).collect(Collectors.toSet()));
+        assertTrue(result.getZahtevA1().stream().allMatch(document -> owner.equals(document.getVlasnikId())));
+        verify(a1Repository).findByOwner(owner);
+    }
+
+    @Test
+    void myRequestsCanBeEmptyAndDoesNotAcceptClientOwner() throws Exception {
+        when(a1Repository.findByOwner(user.getId())).thenReturn(listXml.toXml(new ListaZahtevaType()));
+        var response = mvc.perform(get("/api/a1/zahtevi").header("Authorization", bearer(UlogaType.GRADJANIN)))
+                .andExpect(status().isOk()).andReturn().getResponse();
+        assertTrue(listXml.fromXml(response.getContentAsString(StandardCharsets.UTF_8)).getZahtevA1().isEmpty());
+        mvc.perform(get("/api/a1/zahtevi").param("vlasnikId", "https://example.org/other")
+                .header("Authorization", bearer(UlogaType.GRADJANIN)))
+                .andExpect(status().isBadRequest()).andExpect(xpath("/greska/status").string("400"));
+    }
+
+    @Test
+    void myRequestsRequiresCitizenAndPreservesDatabaseErrors() throws Exception {
+        mvc.perform(get("/api/a1/zahtevi")).andExpect(status().isUnauthorized())
+                .andExpect(xpath("/greska/status").string("401"));
+        mvc.perform(get("/api/a1/zahtevi").header("Authorization", bearer(UlogaType.SLUZBENIK)))
+                .andExpect(status().isForbidden()).andExpect(xpath("/greska/status").string("403"));
+        verifyNoInteractions(a1Repository);
+        when(a1Repository.findByOwner(user.getId())).thenThrow(new A1RepositoryException("Internal details"));
+        mvc.perform(get("/api/a1/zahtevi").header("Authorization", bearer(UlogaType.GRADJANIN)))
+                .andExpect(status().isServiceUnavailable()).andExpect(xpath("/greska/status").string("503"));
+        doReturn("<broken>").when(a1Repository).findByOwner(user.getId());
+        mvc.perform(get("/api/a1/zahtevi").header("Authorization", bearer(UlogaType.GRADJANIN)))
+                .andExpect(status().isServiceUnavailable()).andExpect(xpath("/greska/status").string("503"));
     }
 }

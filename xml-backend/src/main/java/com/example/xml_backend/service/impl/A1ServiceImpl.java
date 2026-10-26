@@ -13,8 +13,10 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 import org.springframework.security.access.AccessDeniedException;
 import com.example.xml_backend.model.a1.ZahtevA1Type;
 import com.example.xml_backend.repository.A1Repository;
+import com.example.xml_backend.repository.A1RepositoryException;
 import com.example.xml_backend.service.A1Service;
 import com.example.xml_backend.service.A1XmlService;
+import com.example.xml_backend.service.A1ListaXmlService;
 import com.example.xml_backend.service.exception.InvalidA1XmlException;
 import com.example.xml_backend.service.exception.ForbiddenA1FieldsException;
 import jakarta.xml.bind.JAXBException;
@@ -25,11 +27,13 @@ public class A1ServiceImpl implements A1Service {
     private final A1XmlService xmlService;
     private final A1Repository repository;
     private final String documentBaseUrl;
+    private final A1ListaXmlService listaXmlService;
 
-    public A1ServiceImpl(A1XmlService xmlService, A1Repository repository,
+    public A1ServiceImpl(A1XmlService xmlService, A1Repository repository, A1ListaXmlService listaXmlService,
             @Value("${a1.document-base-url}") String documentBaseUrl) {
         this.xmlService = xmlService;
         this.repository = repository;
+        this.listaXmlService = listaXmlService;
         URI base = URI.create(documentBaseUrl);
         if (!("http".equals(base.getScheme()) || "https".equals(base.getScheme()))
                 || base.getHost() == null || base.getUserInfo() != null
@@ -74,8 +78,10 @@ public class A1ServiceImpl implements A1Service {
     public Optional<String> findById(String documentId) {
        
     	Authentication authentication = requireRole("ROLE_GRADJANIN", "ROLE_SLUZBENIK");
-        Optional<String> stored = repository.findById(documentId);
-        if (stored.isEmpty()) {
+       
+    	Optional<String> stored = repository.findById(documentId);
+        
+    	if (stored.isEmpty()) {
             return Optional.empty();
         }
         final ZahtevA1Type zahtev;
@@ -86,7 +92,21 @@ public class A1ServiceImpl implements A1Service {
         }
         boolean official = authentication.getAuthorities().stream()
                 .anyMatch(authority -> "ROLE_SLUZBENIK".equals(authority.getAuthority()));
+       
         return official || authentication.getName().equals(zahtev.getVlasnikId()) ? stored : Optional.empty();
+    }
+
+    @Override
+    public String findMyRequests() {
+        Authentication authentication = requireRole("ROLE_GRADJANIN");
+        String owner = authentication.getName();
+        String storedList = repository.findByOwner(owner);
+        try {
+            var list = listaXmlService.fromXml(storedList);
+            return listaXmlService.toXml(list);
+        } catch (JAXBException exception) {
+            throw new A1RepositoryException("Neispravan XML odgovora baze");
+        }
     }
 
     private Authentication requireRole(String... roles) {

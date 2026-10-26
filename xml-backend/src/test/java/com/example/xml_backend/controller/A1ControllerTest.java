@@ -25,6 +25,7 @@ import com.example.xml_backend.repository.A1Repository;
 import com.example.xml_backend.repository.A1RepositoryException;
 import com.example.xml_backend.service.impl.A1ServiceImpl;
 import com.example.xml_backend.service.impl.A1XmlServiceImpl;
+import com.example.xml_backend.service.impl.A1ListaXmlServiceImpl;
 
 class A1ControllerTest {
     private final A1Repository repository = mock(A1Repository.class);
@@ -36,7 +37,7 @@ class A1ControllerTest {
     void setup() throws Exception {
         SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
                 "https://example.org/nalozi/test", null, List.of(new SimpleGrantedAuthority("ROLE_GRADJANIN"))));
-        var service = new A1ServiceImpl(xmlService, repository, "http://localhost:8080/api/a1/zahtevi");
+        var service = new A1ServiceImpl(xmlService, repository, new A1ListaXmlServiceImpl(), "http://localhost:8080/api/a1/zahtevi");
         mvc = MockMvcBuilders.standaloneSetup(new A1Controller(service))
                 .setMessageConverters(new org.springframework.http.converter.StringHttpMessageConverter(StandardCharsets.UTF_8))
                 .setControllerAdvice(new A1ExceptionHandler()).build();

@@ -23,6 +23,7 @@ isključivo kroz Bearer zaglavlje, koje pregledač ne šalje automatski kao kola
 | POST `/api/auth/registracija` | Javno, bez tokena |
 | POST `/api/auth/prijava` | Javno, bez tokena |
 | POST `/api/a1/zahtevi` | GRADJANIN |
+| GET `/api/a1/zahtevi` | GRADJANIN, samo sopstveni zahtevi |
 | GET `/api/a1/zahtevi/{documentId}` | GRADJANIN samo svoj zahtev; SLUZBENIK sve |
 | Sve ostalo | Zabranjeno |
 
@@ -66,6 +67,43 @@ Promena uloge posle izdavanja tokena i opoziv tokena nisu dodati.
    server ga dodaje u sačuvani XML i odgovor.
 9. Ako već postoji stari razvojni dokument bez vlasnika, pozovi njegovu poznatu
    GET adresu: građanin dobija 404, službenik 200. Ne menjaj stari dokument za ovu proveru.
+
+## Moji zahtevi
+
+`GET http://localhost:8080/api/a1/zahtevi`, sa građaninovim Bearer tokenom i
+`Accept: application/xml`, vraća 200 i `listaZahteva` iz namespace-a
+`https://example.org/autorska-prava/a1-lista`. Elementi liste su originalni
+`zahtevA1` dokumenti iz A-1 namespace-a. Bez rezultata odgovor je, uz moguće
+drugačiji namespace prefiks:
+
+```xml
+<l:listaZahteva xmlns:l="https://example.org/autorska-prava/a1-lista"/>
+```
+
+Vlasnik se uzima samo iz autentifikacije. Parametar `?vlasnikId=...` se odbija
+sa XML 400. Bez prijave odgovor je 401; službenik dobija 403 za ovu listu.
+XQuery `a1-find-by-owner.xq` filtrira tačan `@vlasnikId` u bazi, uz spoljnu
+promenljivu. Servis proverava prijavu i ulogu, uzima autentifikovani ID,
+poziva repository i validira XML rezultat. Filtriranje je samo u XQuery-u;
+poseban redosled rezultata nije propisan.
+
+Nepostojeća kolekcija daje praznu listu. Postojanje se proverava nabrajanjem
+roditeljskih kolekcija, bez prikrivanja grešaka pristupa kroz `collection-available`.
+HTTP/transport greške, odbijen pristup i neispravan XML baze daju 503.
+
+`a1-lista.xsd` koristi `xs:import` postojeće A-1 šeme. Obe se kompajliraju u
+jednom XJC izvršavanju u `model.a1`, sa jednom kopijom `ZahtevA1Type`.
+Drugi modeli i njihovi izlazni direktorijumi ostaju odvojeni. XML servis unapred
+učitava tačno dve poznate šeme sa classpath-a; `ACCESS_EXTERNAL_SCHEMA` i
+`ACCESS_EXTERNAL_DTD` ostaju prazni. Ne otvara se mrežni pristup radi importa.
+
+Za Postman proveru, građaninom A kreiraj dva zahteva, građaninom B jedan,
+pa pozovi listu tokenom A: očekuj samo dva zahteva A, bez zahteva za redosledom.
+Tokenom novog građanina bez zahteva očekuj praznu listu. Stari dokumenti bez
+vlasnika se ne prikazuju. Službenikov token daje 403 za listu, dok njegov
+pojedinačni GET ostaje dozvoljen. Zaustavljena baza daje XML 503.
+Ova provera sa stvarnom bazom nije izvršena tokom implementacije; automatski
+testovi koriste mock repository i lokalni HTTP stub, uz stvarnu JAXB validaciju.
 
 ## Automatske provere
 

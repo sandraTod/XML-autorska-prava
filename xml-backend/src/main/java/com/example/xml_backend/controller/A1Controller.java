@@ -30,4 +30,12 @@ public class A1Controller {
                 .map(xml -> ResponseEntity.ok().contentType(XML_UTF8).body(xml))
                 .orElseGet(() -> A1ExceptionHandler.error(404, "Zahtev nije pronađen."));
     }
+
+    @GetMapping("/listaZahteva")
+    public ResponseEntity<String> findMyRequests(@RequestParam(name = "vlasnikId", required = false) String requestedOwner) {
+        if (requestedOwner != null) {
+            throw new IllegalArgumentException("Vlasnik se ne zadaje kroz zahtev");
+        }
+        return ResponseEntity.ok().contentType(XML_UTF8).body(service.findMyRequests());
+    }
 }

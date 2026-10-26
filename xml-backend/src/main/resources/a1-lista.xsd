@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:l="https://example.org/autorska-prava/a1-lista"
+           xmlns:a1="https://example.org/autorska-prava/a1"
+           targetNamespace="https://example.org/autorska-prava/a1-lista"
+           elementFormDefault="qualified">
+  <xs:import namespace="https://example.org/autorska-prava/a1" schemaLocation="a1-zahtev.xsd"/>
+  <xs:complexType name="ListaZahtevaType">
+    <xs:sequence>
+      <xs:element ref="a1:zahtevA1" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="listaZahteva" type="l:ListaZahtevaType"/>
+</xs:schema>

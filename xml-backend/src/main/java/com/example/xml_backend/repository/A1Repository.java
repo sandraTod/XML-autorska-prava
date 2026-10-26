@@ -7,4 +7,6 @@ public interface A1Repository {
     void save(String documentId, String xml);
     
     Optional<String> findById(String documentId);
+    
+    String findByOwner(String vlasnikId);
 }

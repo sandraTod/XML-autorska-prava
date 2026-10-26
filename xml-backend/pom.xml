@@ -105,7 +105,11 @@
 							<goal>xjc</goal>
 						</goals>
 						<configuration>
-							<sources><source>${project.basedir}/src/main/resources/a1-zahtev.xsd</source></sources>
+							<!-- Compile the imported A-1 model and list together: one copy of each type. -->
+							<sources>
+								<source>${project.basedir}/src/main/resources/a1-zahtev.xsd</source>
+								<source>${project.basedir}/src/main/resources/a1-lista.xsd</source>
+							</sources>
 							<packageName>com.example.xml_backend.model.a1</packageName>
 							<outputDirectory>${project.build.directory}/generated-sources/jaxb/a1</outputDirectory>
 						</configuration>

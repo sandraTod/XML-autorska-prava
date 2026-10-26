@@ -33,6 +33,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(routes -> routes
                         .requestMatchers(HttpMethod.POST, "/api/auth/registracija", "/api/auth/prijava").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/a1/zahtevi").hasRole("GRADJANIN")
+                        .requestMatchers(HttpMethod.GET, "/api/a1/zahtevi/listaZahteva").hasRole("GRADJANIN")
                         .requestMatchers(HttpMethod.GET, "/api/a1/zahtevi/{documentId}").hasAnyRole("GRADJANIN", "SLUZBENIK")
                         .anyRequest().denyAll())
                 .addFilterBefore(new JwtAuthenticationFilter(tokens, errors), UsernamePasswordAuthenticationFilter.class)
