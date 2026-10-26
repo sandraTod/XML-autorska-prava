@@ -11,6 +11,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
@@ -29,6 +34,8 @@ class A1ControllerTest {
 
     @BeforeEach
     void setup() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
+                "https://example.org/nalozi/test", null, List.of(new SimpleGrantedAuthority("ROLE_GRADJANIN"))));
         var service = new A1ServiceImpl(xmlService, repository, "http://localhost:8080/api/a1/zahtevi");
         mvc = MockMvcBuilders.standaloneSetup(new A1Controller(service))
                 .setMessageConverters(new org.springframework.http.converter.StringHttpMessageConverter(StandardCharsets.UTF_8))
@@ -36,6 +43,11 @@ class A1ControllerTest {
         try (var input = getClass().getResourceAsStream("/a1-zahtev-primer.xml")) {
             example = new String(input.readAllBytes(), StandardCharsets.UTF_8);
         }
+    }
+
+    @AfterEach
+    void clearAuthentication() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -51,6 +63,7 @@ class A1ControllerTest {
         assertEquals("http://localhost:8080/api/a1/zahtevi/" + id.getValue(), response.getHeader("Location"));
         var saved = xmlService.fromXml(xml.getValue());
         assertEquals(response.getHeader("Location"), saved.getId());
+        assertEquals("https://example.org/nalozi/test", saved.getVlasnikId());
         assertEquals("Priče sa zamišljene obale", saved.getPodaciGradjanina().getDelo().getNaslov());
         assertEquals(xml.getValue(), response.getContentAsString(StandardCharsets.UTF_8));
         when(repository.findById(id.getValue())).thenReturn(Optional.of(xml.getValue()));
@@ -72,13 +85,14 @@ class A1ControllerTest {
                     .andExpect(xpath("/greska/status").string("400"))
                     .andExpect(xpath("/greska/poruka").string("Neispravan A-1 XML."));
         }
-        for (String input : new String[]{clientId, official}) {
+        String clientOwner = example.replace("xsi:schemaLocation=", "vlasnikId=\"https://example.org/nalozi/test\" xsi:schemaLocation=");
+        for (String input : new String[]{clientId, official, clientOwner}) {
             mvc.perform(post("/api/a1/zahtevi").contentType(MediaType.APPLICATION_XML)
                     .content(input.getBytes(StandardCharsets.UTF_8)))
                     .andExpect(status().isBadRequest())
                     .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_XML))
                     .andExpect(xpath("/greska/status").string("400"))
-                    .andExpect(xpath("/greska/poruka").string("Unos polja id i sluzbeniDeo nije dozvoljen."));
+                    .andExpect(xpath("/greska/poruka").string("Unos polja id, vlasnikId i sluzbeniDeo nije dozvoljen."));
         }
         verifyNoInteractions(repository);
     }

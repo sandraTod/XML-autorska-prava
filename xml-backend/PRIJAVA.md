@@ -78,8 +78,8 @@ Neispravan XML: 400. Nedostupna baza: 503. Sve navedene greške su XML.
 Neispravan sačuvani nalog ili neočekivana interna greška: generički XML 500.
 
 JWT filter sada proverava tokene i štiti A-1 rute prema pravilima u `SECURITY.md`.
-Registracija i prijava ostaju javni POST endpoint-i; vlasništvo nad zahtevima
-još nije povezano.
+Registracija i prijava ostaju javni POST endpoint-i. A-1 servis proverava vlasništvo
+za građane, dok službenik čita sve zahteve, prema `SECURITY.md`.
 
 ## Automatske i ručne provere
 

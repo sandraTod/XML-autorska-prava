@@ -153,12 +153,20 @@
       <xs:element name="primljeniPrilozi" type="a1:PriloziType" minOccurs="0"/>
     </xs:sequence>
   </xs:complexType>
+  <xs:simpleType name="VlasnikUrlType">
+    <xs:restriction base="xs:anyURI">
+      <xs:minLength value="1"/>
+      <xs:pattern value="https?://[^/\s?#]+/[^\s?#]+"/>
+    </xs:restriction>
+  </xs:simpleType>
   <xs:complexType name="ZahtevA1Type">
     <xs:sequence>
       <xs:element name="podaciGradjanina" type="a1:PodaciGradjaninaType"/>
       <xs:element name="sluzbeniDeo" type="a1:SluzbeniDeoType" minOccurs="0"/>
     </xs:sequence>
     <xs:attribute name="id" type="a1:ReferencaType" use="optional"/>
+    <!-- Postavlja backend. Opciono samo radi ulaza pre kreiranja i starih dokumenata. -->
+    <xs:attribute name="vlasnikId" type="a1:VlasnikUrlType" use="optional"/>
   </xs:complexType>
   <xs:element name="zahtevA1" type="a1:ZahtevA1Type"/>
 </xs:schema>

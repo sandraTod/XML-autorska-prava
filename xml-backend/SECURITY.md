@@ -23,7 +23,7 @@ isključivo kroz Bearer zaglavlje, koje pregledač ne šalje automatski kao kola
 | POST `/api/auth/registracija` | Javno, bez tokena |
 | POST `/api/auth/prijava` | Javno, bez tokena |
 | POST `/api/a1/zahtevi` | GRADJANIN |
-| GET `/api/a1/zahtevi/{documentId}` | GRADJANIN ili SLUZBENIK |
+| GET `/api/a1/zahtevi/{documentId}` | GRADJANIN samo svoj zahtev; SLUZBENIK sve |
 | Sve ostalo | Zabranjeno |
 
 Nedostajući token na zaštićenoj ruti ili neispravan/istekao token daju 401.
@@ -36,8 +36,15 @@ pošalje i javnoj ruti, mora biti validno. Odgovori su XML:
 
 Za 403 poruka je `Pristup nije dozvoljen.` Nema internih detalja.
 Poslovni XML odgovori (400, 404, 503 i dr.) ostaju isti nakon uspešne security provere.
-Ovo proverava samo potpis, prijavu i ulogu iz tokena; vlasništvo nad zahtevom,
-promena uloge posle izdavanja i opoziv tokena nisu dodati.
+`A1ServiceImpl` proverava autentifikaciju i potrebnu ulogu pre svake operacije.
+Pri kreiranju upisuje URL ID naloga iz proverene autentifikacije u atribut
+`zahtevA1/@vlasnikId`. Klijentski unos tog atributa, čak i sopstvenog ID-a,
+odbija se sa 400, kao unos `id` i `sluzbeniDeo`.
+Građanin čita samo zahtev sa potpuno jednakim `vlasnikId`; tuđi zahtev i stari
+dokument bez vlasnika daju isti XML 404 kao nepostojeći dokument.
+Službenik može čitati sve validne dokumente, uključujući stare bez vlasnika.
+Čitanje ne menja dokument; nema automatskog pripisivanja starih dokumenata.
+Promena uloge posle izdavanja tokena i opoziv tokena nisu dodati.
 
 ## Postman
 
@@ -52,6 +59,13 @@ promena uloge posle izdavanja i opoziv tokena nisu dodati.
 5. Bez tokena ili sa izmenjenim/isteklim tokenom očekuj XML 401.
 6. Token već predefinisanog službenika dozvoljava GET, a POST vraća XML 403.
    Nije dodato kreiranje službenika. Nepostojeći dokument uz validan token vraća 404.
+7. Prijavi drugog građanina i njegovim tokenom pročitaj istu Location adresu:
+   očekuj XML 404. Tokenom vlasnika očekuj 200, a tokenom službenika takođe 200.
+8. U POST telo dodaj `vlasnikId="https://example.org/nalozi/proba"` na korenski
+   element: očekuj XML 400. Običan POST primer ne treba da sadrži taj atribut;
+   server ga dodaje u sačuvani XML i odgovor.
+9. Ako već postoji stari razvojni dokument bez vlasnika, pozovi njegovu poznatu
+   GET adresu: građanin dobija 404, službenik 200. Ne menjaj stari dokument za ovu proveru.
 
 ## Automatske provere
 
@@ -62,6 +76,8 @@ promena uloge posle izdavanja i opoziv tokena nisu dodati.
 `JwtSecurityTest` koristi pun Spring Security lanac, stvarne XML/login servise,
 BCrypt i JWT potpise, ali mock repository-je. Pokriva javne rute, odsutan,
 neispravan, nepotpisan, istekao i token drugog algoritma/ključa, obavezne claim-ove,
-obe uloge, zabranu drugih ruta, XML greške, odsustvo sesije i jednu registraciju filtera.
+obe uloge, vlasništvo i stare dokumente, zabranu drugih ruta, XML greške,
+odsustvo sesije i jednu registraciju filtera. `A1ServiceAuthorizationTest`
+proverava da se autentifikacija i uloga zahtevaju i pri direktnom pozivu servisa.
 Testovi ne potvrđuju rad sa stvarnom bazom. Za tu proveru koristi Postman
 uz nalog prethodno sačuvan u lokalnom eXist-db-u.

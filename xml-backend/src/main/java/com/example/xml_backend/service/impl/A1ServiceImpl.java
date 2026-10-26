@@ -6,6 +6,12 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
+import com.example.xml_backend.model.a1.ZahtevA1Type;
 import com.example.xml_backend.repository.A1Repository;
 import com.example.xml_backend.service.A1Service;
 import com.example.xml_backend.service.A1XmlService;
@@ -35,22 +41,23 @@ public class A1ServiceImpl implements A1Service {
 
     @Override
     public CreatedDocument create(String xml) {
-    	
+        Authentication authentication = requireRole("ROLE_GRADJANIN");
         if (xml == null || xml.isBlank()) {
             throw new InvalidA1XmlException();
         }
-        final com.example.xml_backend.model.a1.ZahtevA1Type zahtev;
+        final ZahtevA1Type zahtev;
         try {
             zahtev = xmlService.fromXml(xml);
         } catch (JAXBException e) {
             throw new InvalidA1XmlException();
         }
-        if (zahtev.getId() != null || zahtev.getSluzbeniDeo() != null) {
+        if (zahtev.getId() != null || zahtev.getSluzbeniDeo() != null || zahtev.getVlasnikId() != null) {
             throw new ForbiddenA1FieldsException();
         }
         String documentId = UUID.randomUUID().toString();
         URI location = URI.create(documentBaseUrl + "/" + documentId);
         zahtev.setId(location.toString());
+        zahtev.setVlasnikId(authentication.getName());
         
         final String savedXml;
         
@@ -65,6 +72,37 @@ public class A1ServiceImpl implements A1Service {
 
     @Override
     public Optional<String> findById(String documentId) {
-        return repository.findById(documentId);
+       
+    	Authentication authentication = requireRole("ROLE_GRADJANIN", "ROLE_SLUZBENIK");
+        Optional<String> stored = repository.findById(documentId);
+        if (stored.isEmpty()) {
+            return Optional.empty();
+        }
+        final ZahtevA1Type zahtev;
+        try {
+            zahtev = xmlService.fromXml(stored.get());
+        } catch (JAXBException exception) {
+            throw new IllegalStateException("Neispravan sačuvani A-1 dokument");
+        }
+        boolean official = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_SLUZBENIK".equals(authority.getAuthority()));
+        return official || authentication.getName().equals(zahtev.getVlasnikId()) ? stored : Optional.empty();
+    }
+
+    private Authentication requireRole(String... roles) {
+        
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken
+                || authentication.getName() == null || authentication.getName().isBlank()) {
+            throw new AuthenticationCredentialsNotFoundException("Potrebna je prijava");
+        }
+        for (String role : roles) {
+            if (authentication.getAuthorities().stream().anyMatch(authority -> role.equals(authority.getAuthority()))) {
+                return authentication;
+            }
+        }
+        throw new AccessDeniedException("Pristup nije dozvoljen");
     }
 }

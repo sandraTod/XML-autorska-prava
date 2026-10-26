@@ -40,6 +40,7 @@ import com.example.xml_backend.model.korisnik.UlogaType;
 import com.example.xml_backend.repository.A1Repository;
 import com.example.xml_backend.repository.KorisnikRepository;
 import com.example.xml_backend.service.JwtTokenService;
+import com.example.xml_backend.service.A1XmlService;
 import com.example.xml_backend.service.KorisnikXmlService;
 import com.example.xml_backend.service.PrijavaOdgovorXmlService;
 import io.jsonwebtoken.Jwts;
@@ -54,6 +55,7 @@ class JwtSecurityTest {
 
     @Autowired private WebApplicationContext context;
     @Autowired private JwtTokenService tokens;
+    @Autowired private A1XmlService a1Xml;
     @Autowired private KorisnikXmlService userXml;
     @Autowired private PrijavaOdgovorXmlService responseXml;
     @Autowired private SecretKey signingKey;
@@ -147,11 +149,12 @@ class JwtSecurityTest {
 
     @Test
     void citizenCanPostWhileOfficialCannotAndBothCanRead() throws Exception {
-        when(a1Repository.findById("test")).thenReturn(Optional.of(example));
+        String owned = example.replace("xsi:schemaLocation=", "vlasnikId=\"" + user.getId() + "\" xsi:schemaLocation=");
+        when(a1Repository.findById("test")).thenReturn(Optional.of(owned));
         for (UlogaType role : UlogaType.values()) {
             mvc.perform(get("/api/a1/zahtevi/test").header("Authorization", bearer(role)))
                     .andExpect(status().isOk()).andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_XML))
-                    .andExpect(content().string(example));
+                    .andExpect(content().string(owned));
         }
         mvc.perform(post("/api/a1/zahtevi").header("Authorization", bearer(UlogaType.SLUZBENIK))
                 .contentType(MediaType.APPLICATION_XML).content(example.getBytes(StandardCharsets.UTF_8)))
@@ -161,8 +164,33 @@ class JwtSecurityTest {
                 .andExpect(status().isCreated()).andExpect(header().exists("Location"))
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_XML)).andReturn();
         assertNull(created.getRequest().getSession(false));
+        var saved = a1Xml.fromXml(created.getResponse().getContentAsString(StandardCharsets.UTF_8));
+        assertEquals(user.getId(), saved.getVlasnikId());
         // Autentifikacija se ne prenosi sa prethodnog zahteva bez Bearer zaglavlja.
         mvc.perform(get("/api/a1/zahtevi/test")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void ownershipAndLegacyAccessAreCheckedThroughSecurityChain() throws Exception {
+        String owned = example.replace("xsi:schemaLocation=", "vlasnikId=\"" + user.getId() + "\" xsi:schemaLocation=");
+        String foreign = example.replace("xsi:schemaLocation=", "vlasnikId=\"https://example.org/nalozi/drugi\" xsi:schemaLocation=");
+        when(a1Repository.findById("owned")).thenReturn(Optional.of(owned));
+        when(a1Repository.findById("foreign")).thenReturn(Optional.of(foreign));
+        when(a1Repository.findById("legacy")).thenReturn(Optional.of(example));
+        mvc.perform(get("/api/a1/zahtevi/owned").header("Authorization", bearer(UlogaType.GRADJANIN)))
+                .andExpect(status().isOk()).andExpect(content().string(owned));
+        for (String document : new String[]{"foreign", "legacy"}) {
+            mvc.perform(get("/api/a1/zahtevi/" + document).header("Authorization", bearer(UlogaType.GRADJANIN)))
+                    .andExpect(status().isNotFound()).andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_XML))
+                    .andExpect(xpath("/greska/status").string("404"));
+        }
+        for (String document : new String[]{"owned", "foreign", "legacy"}) {
+            mvc.perform(get("/api/a1/zahtevi/" + document).header("Authorization", bearer(UlogaType.SLUZBENIK)))
+                    .andExpect(status().isOk()).andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_XML));
+        }
+        mvc.perform(post("/api/a1/zahtevi").header("Authorization", bearer(UlogaType.GRADJANIN))
+                .contentType(MediaType.APPLICATION_XML).content(owned.getBytes(StandardCharsets.UTF_8)))
+                .andExpect(status().isBadRequest()).andExpect(xpath("/greska/status").string("400"));
     }
 
     @Test

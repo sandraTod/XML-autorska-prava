@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.example.xml_backend.repository.A1RepositoryException;
 import com.example.xml_backend.service.exception.InvalidA1XmlException;
 import com.example.xml_backend.service.exception.ForbiddenA1FieldsException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.access.AccessDeniedException;
 
 @RestControllerAdvice(assignableTypes = A1Controller.class)
 public class A1ExceptionHandler {
@@ -21,7 +23,17 @@ public class A1ExceptionHandler {
 
     @ExceptionHandler(ForbiddenA1FieldsException.class)
     public ResponseEntity<String> forbiddenFields(ForbiddenA1FieldsException ignored) {
-        return error(400, "Unos polja id i sluzbeniDeo nije dozvoljen.");
+        return error(400, "Unos polja id, vlasnikId i sluzbeniDeo nije dozvoljen.");
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<String> unauthenticated(AuthenticationException ignored) {
+        return error(401, "Potrebna je važeća prijava.");
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<String> forbidden(AccessDeniedException ignored) {
+        return error(403, "Pristup nije dozvoljen.");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
