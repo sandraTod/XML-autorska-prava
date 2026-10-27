@@ -106,4 +106,33 @@ class ExistA1RepositoryTest {
         server.stop(0);
         assertThrows(A1RepositoryException.class, () -> repository.findByOwner(owner));
     }
+
+    @Test
+    void allQueryHasNoOwnerFilterAndPreservesErrors() throws Exception {
+        var received = new AtomicReference<String>();
+        String emptyList = "<l:listaZahteva xmlns:l='https://example.org/autorska-prava/a1-lista'/>";
+        server.createContext("/exist/rest/db", exchange -> {
+            received.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+            byte[] body = emptyList.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(status.get(), body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        assertEquals(emptyList, repository.findAll());
+        var factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        var document = factory.newDocumentBuilder().parse(new ByteArrayInputStream(received.get().getBytes(StandardCharsets.UTF_8)));
+        String query = document.getElementsByTagNameNS("http://exist.sourceforge.net/NS/exist", "text").item(0).getTextContent();
+        assertTrue(query.contains("collection($collection)/a1:zahtevA1"));
+        assertTrue(query.contains("xmldb:get-child-collections('/db')"));
+        assertFalse(query.contains("vlasnikId"));
+        assertFalse(query.contains("order by"));
+        assertEquals(0, document.getElementsByTagNameNS("http://exist.sourceforge.net/NS/exist", "variable").getLength());
+        for (int code : new int[]{401, 403, 404, 500}) {
+            status.set(code);
+            assertThrows(A1RepositoryException.class, () -> repository.findAll());
+        }
+        server.stop(0);
+        assertThrows(A1RepositoryException.class, () -> repository.findAll());
+    }
 }

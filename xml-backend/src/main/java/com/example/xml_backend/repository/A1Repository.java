@@ -9,4 +9,5 @@ public interface A1Repository {
     Optional<String> findById(String documentId);
     
     String findByOwner(String vlasnikId);
+    String findAll();
 }

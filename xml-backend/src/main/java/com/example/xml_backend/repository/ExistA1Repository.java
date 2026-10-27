@@ -29,7 +29,8 @@ public class ExistA1Repository implements A1Repository {
     private final String password;
     private final Duration requestTimeout;
     private final HttpClient client;
-    private final String ownerQuery = loadOwnerQuery();
+    private final String ownerQuery = loadQuery("a1-find-by-owner.xq");
+    private final String allQuery = loadQuery("a1-find-all.xq");
 
     public ExistA1Repository(
             @Value("${exist-db.url}") String url,
@@ -94,6 +95,11 @@ public class ExistA1Repository implements A1Repository {
         return execute(ownerQuery, Map.of("vlasnikId", vlasnikId));
     }
 
+    @Override
+    public String findAll() {
+        return execute(allQuery, Map.of());
+    }
+
     private String execute(String query, Map<String, String> variables) {
         final String body;
         try {
@@ -111,8 +117,8 @@ public class ExistA1Repository implements A1Repository {
         return response.body();
     }
 
-    private static String loadOwnerQuery() {
-        try (var input = ExistA1Repository.class.getResourceAsStream("/exist/a1-find-by-owner.xq")) {
+    private static String loadQuery(String filename) {
+        try (var input = ExistA1Repository.class.getResourceAsStream("/exist/" + filename)) {
             if (input == null) {
                 throw new IllegalStateException("Nedostaje upit za A-1 listu");
             }

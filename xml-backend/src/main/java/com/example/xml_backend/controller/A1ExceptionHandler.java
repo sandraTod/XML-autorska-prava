@@ -12,7 +12,7 @@ import com.example.xml_backend.service.exception.ForbiddenA1FieldsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.access.AccessDeniedException;
 
-@RestControllerAdvice(assignableTypes = A1Controller.class)
+@RestControllerAdvice(assignableTypes = {A1Controller.class, SluzbenikA1Controller.class})
 public class A1ExceptionHandler {
 	
 	

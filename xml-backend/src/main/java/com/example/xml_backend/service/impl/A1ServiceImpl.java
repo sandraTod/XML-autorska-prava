@@ -109,6 +109,18 @@ public class A1ServiceImpl implements A1Service {
         }
     }
 
+    @Override
+    public String findAllRequests() {
+        requireRole("ROLE_SLUZBENIK");
+        String storedList = repository.findAll();
+        try {
+            var list = listaXmlService.fromXml(storedList);
+            return listaXmlService.toXml(list);
+        } catch (JAXBException exception) {
+            throw new A1RepositoryException("Neispravan XML odgovora baze");
+        }
+    }
+
     private Authentication requireRole(String... roles) {
         
     	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

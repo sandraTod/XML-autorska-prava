@@ -43,6 +43,7 @@ class A1ServiceAuthorizationTest {
         assertThrows(AuthenticationCredentialsNotFoundException.class, () -> service.create("<broken>"));
         assertThrows(AuthenticationCredentialsNotFoundException.class, () -> service.findById("test"));
         assertThrows(AuthenticationCredentialsNotFoundException.class, () -> service.findMyRequests());
+        assertThrows(AuthenticationCredentialsNotFoundException.class, () -> service.findAllRequests());
     }
 
     @Test
@@ -51,11 +52,20 @@ class A1ServiceAuthorizationTest {
                 "https://example.org/nalozi/test", null, List.of(new SimpleGrantedAuthority("ROLE_OTHER"))));
         assertThrows(AccessDeniedException.class, () -> service.create("<broken>"));
         assertThrows(AccessDeniedException.class, () -> service.findById("test"));
+        assertThrows(AccessDeniedException.class, () -> service.findAllRequests());
         assertThrows(AccessDeniedException.class, () -> service.findMyRequests());
         SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
                 "https://example.org/nalozi/official", null, List.of(new SimpleGrantedAuthority("ROLE_SLUZBENIK"))));
         assertThrows(AccessDeniedException.class, () -> service.create("<broken>"));
         assertThrows(AccessDeniedException.class, () -> service.findMyRequests());
+        verifyNoInteractions(repository, xmlService);
+    }
+
+    @Test
+    void citizenCannotCallOfficialListDirectly() {
+        SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
+                "https://example.org/nalozi/citizen", null, List.of(new SimpleGrantedAuthority("ROLE_GRADJANIN"))));
+        assertThrows(AccessDeniedException.class, () -> service.findAllRequests());
         verifyNoInteractions(repository, xmlService);
     }
 }

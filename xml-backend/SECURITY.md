@@ -22,6 +22,7 @@ isključivo kroz Bearer zaglavlje, koje pregledač ne šalje automatski kao kola
 | --- | --- |
 | POST `/api/auth/registracija` | Javno, bez tokena |
 | POST `/api/auth/prijava` | Javno, bez tokena |
+| GET `/api/sluzbenik/a1/zahtevi` | SLUZBENIK, svi zahtevi |
 | POST `/api/a1/zahtevi` | GRADJANIN |
 | GET `/api/a1/zahtevi` | GRADJANIN, samo sopstveni zahtevi |
 | GET `/api/a1/zahtevi/{documentId}` | GRADJANIN samo svoj zahtev; SLUZBENIK sve |

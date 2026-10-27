@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<k:korisnik xmlns:k="https://example.org/autorska-prava/korisnik"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="https://example.org/autorska-prava/korisnik korisnik.xsd"
+            id="https://example.org/autorska-prava/nalozi/58675d5b-2e64-439f-ae84-2b70741a0653">
+  <k:ime>Jelena</k:ime>
+  <k:prezime>Primerić</k:prezime>
+  <k:email>sluzbenik.razvoj@example.org</k:email>
+  <k:lozinkaHash>$2a$10$1omKVY8v.zw/rHAf3HZ2m.b87ec5HgJMzVRbNBKYlZhVFyqe1z0d.</k:lozinkaHash>
+  <k:uloga>SLUZBENIK</k:uloga>
+</k:korisnik>
