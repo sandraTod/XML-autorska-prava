@@ -63,6 +63,19 @@ class ExistKorisnikRepositoryTest {
     }
 
     @Test
+    void findsByUrlIdUsingExternalParameter() {
+        String id = "https://example.org/nalozi/O'Hara?a=1&b=2";
+        responseBody.set("<missing/>");
+        assertTrue(repository.findById(id).isEmpty());
+        assertTrue(requestBody.get().contains("@id = $id"));
+        assertTrue(requestBody.get().contains("a=1&amp;b=2"));
+        responseBody.set("<k:korisnik xmlns:k='https://example.org/autorska-prava/korisnik' id='https://example.org/nalozi/one'/>");
+        assertTrue(repository.findById(id).orElseThrow().contains("https://example.org/nalozi/one"));
+        status.set(403);
+        assertThrows(KorisnikRepositoryException.class, () -> repository.findById(id));
+    }
+
+    @Test
     void findsUserAndOnlyExplicitMissingMeansAbsent() throws Exception {
         responseBody.set("<missing/>");
         assertTrue(repository.findByEmail("test@example.org").isEmpty());

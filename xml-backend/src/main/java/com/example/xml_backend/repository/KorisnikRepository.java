@@ -8,4 +8,6 @@ public interface KorisnikRepository {
     void save(String email, String korisnikXml);
     
     Optional<String> findByEmail(String email);
+
+    Optional<String> findById(String id);
 }

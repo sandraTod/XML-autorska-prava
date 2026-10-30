@@ -154,6 +154,26 @@
 							<outputDirectory>${project.build.directory}/generated-sources/jaxb/prijavaodgovor</outputDirectory>
 						</configuration>
 					</execution>
+					<execution>
+						<id>generate-odluka-model</id>
+						<phase>generate-sources</phase>
+						<goals><goal>xjc</goal></goals>
+						<configuration>
+							<sources><source>${project.basedir}/src/main/resources/odluka.xsd</source></sources>
+							<packageName>com.example.xml_backend.model.odluka</packageName>
+							<outputDirectory>${project.build.directory}/generated-sources/jaxb/odluka</outputDirectory>
+						</configuration>
+					</execution>
+					<execution>
+						<id>generate-resenje-model</id>
+						<phase>generate-sources</phase>
+						<goals><goal>xjc</goal></goals>
+						<configuration>
+							<sources><source>${project.basedir}/src/main/resources/resenje.xsd</source></sources>
+							<packageName>com.example.xml_backend.model.resenje</packageName>
+							<outputDirectory>${project.build.directory}/generated-sources/jaxb/resenje</outputDirectory>
+						</configuration>
+					</execution>
 				</executions>
 				<configuration>
 					<!-- Each execution clears only its own output directory and registers it as a source root. -->

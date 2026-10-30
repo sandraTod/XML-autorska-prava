@@ -35,6 +35,7 @@ public class ExistKorisnikRepository implements KorisnikRepository {
     private final Duration timeout;
     private final HttpClient client;
     private final String saveQuery = loadQuery("korisnik-save.xq");
+    private final String findByIdQuery = loadQuery("korisnik-find-by-id.xq");
     private final String findQuery = loadQuery("korisnik-find.xq");
 
     public ExistKorisnikRepository(@Value("${exist-db.url}") String url,
@@ -74,7 +75,15 @@ public class ExistKorisnikRepository implements KorisnikRepository {
 
     @Override
     public Optional<String> findByEmail(String email) {
-        Document response = execute(findQuery, Map.of("email", EmailNormalizer.normalize(email)));
+        return userDocument(execute(findQuery, Map.of("email", EmailNormalizer.normalize(email))));
+    }
+
+    @Override
+    public Optional<String> findById(String id) {
+        return userDocument(execute(findByIdQuery, Map.of("id", id)));
+    }
+
+    private Optional<String> userDocument(Document response) {
         
         if (response.getElementsByTagName("missing").getLength() == 1) {
             return Optional.empty();

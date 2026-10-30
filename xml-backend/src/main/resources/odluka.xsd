@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:o="https://example.org/autorska-prava/odluka"
+           targetNamespace="https://example.org/autorska-prava/odluka"
+           elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:documentation xml:lang="sr">Ulaz službenika za odluku o zahtevu određenom putanjom.
+      ID, datum, identitet službenika i šifra zavedenog dela nisu klijentski unos.
+    </xs:documentation>
+  </xs:annotation>
+  <xs:simpleType name="NeprazanTekstType">
+    <xs:restriction base="xs:token"><xs:minLength value="1"/></xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="OdobrenjeType"/>
+  <xs:complexType name="OdbijanjeType">
+    <xs:sequence>
+      <xs:element name="obrazlozenje" type="o:NeprazanTekstType"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="OdlukaType">
+    <xs:choice>
+      <xs:element name="odobrenje" type="o:OdobrenjeType"/>
+      <xs:element name="odbijanje" type="o:OdbijanjeType"/>
+    </xs:choice>
+  </xs:complexType>
+  <xs:element name="odluka" type="o:OdlukaType"/>
+</xs:schema>

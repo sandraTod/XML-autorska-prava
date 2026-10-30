@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SAMO ZA RAZVOJ: izmišljeni podaci; tekst nije pravno obrazloženje. -->
+<o:odluka xmlns:o="https://example.org/autorska-prava/odluka"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="https://example.org/autorska-prava/odluka odluka.xsd">
+  <o:odbijanje>
+    <o:obrazlozenje>Nije dostavljen primer autorskog dela potreban za obradu zahteva.</o:obrazlozenje>
+  </o:odbijanje>
+</o:odluka>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SAMO ZA RAZVOJ: izmišljeni podaci; tekst nije pravno obrazloženje. -->
+<r:resenje xmlns:r="https://example.org/autorska-prava/resenje"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="https://example.org/autorska-prava/resenje resenje.xsd"
+           id="http://localhost:8080/api/a1/zahtevi/123e4567-e89b-42d3-a456-426614174002/resenje">
+  <r:zahtevRef>http://localhost:8080/api/a1/zahtevi/123e4567-e89b-42d3-a456-426614174002</r:zahtevRef>
+  <r:datumOdluke>2026-10-28</r:datumOdluke>
+  <r:sluzbenik id="https://example.org/autorska-prava/nalozi/58675d5b-2e64-439f-ae84-2b70741a0653">
+    <r:ime>Jelena</r:ime>
+    <r:prezime>Primerić</r:prezime>
+  </r:sluzbenik>
+  <r:odbijanje>
+    <r:obrazlozenje>Nije dostavljen primer autorskog dela potreban za obradu zahteva.</r:obrazlozenje>
+  </r:odbijanje>
+</r:resenje>

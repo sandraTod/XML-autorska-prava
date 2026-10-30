@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:r="https://example.org/autorska-prava/resenje"
+           targetNamespace="https://example.org/autorska-prava/resenje"
+           elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:documentation xml:lang="sr">Poseban dokument rešenja. Datum odluke predstavlja datum
+      odobravanja ili odbijanja prema izabranoj grani. Nije datum podnošenja A-1 zahteva.
+      Šifra dela nije broj prijave iz službenog dela A-1 obrasca.
+    </xs:documentation>
+  </xs:annotation>
+  <xs:simpleType name="NeprazanTekstType">
+    <xs:restriction base="xs:token"><xs:minLength value="1"/></xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="UrlType">
+    <xs:restriction base="xs:anyURI">
+      <xs:minLength value="1"/>
+      <xs:pattern value="https?://[^/\s?#]+/[^\s?#]+"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="SluzbenikType">
+    <xs:sequence>
+      <xs:element name="ime" type="r:NeprazanTekstType"/>
+      <xs:element name="prezime" type="r:NeprazanTekstType"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="r:UrlType" use="required"/>
+  </xs:complexType>
+  <xs:complexType name="OdobrenjeType">
+    <xs:sequence>
+      <xs:element name="sifraDela" type="r:NeprazanTekstType"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="OdbijanjeType">
+    <xs:sequence>
+      <xs:element name="obrazlozenje" type="r:NeprazanTekstType"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ResenjeType">
+    <xs:sequence>
+      <xs:element name="zahtevRef" type="r:UrlType"/>
+      <xs:element name="datumOdluke" type="xs:date"/>
+      <xs:element name="sluzbenik" type="r:SluzbenikType"/>
+      <xs:choice>
+        <xs:element name="odobrenje" type="r:OdobrenjeType"/>
+        <xs:element name="odbijanje" type="r:OdbijanjeType"/>
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute name="id" type="r:UrlType" use="required"/>
+  </xs:complexType>
+  <xs:element name="resenje" type="r:ResenjeType"/>
+</xs:schema>
