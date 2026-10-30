@@ -1,0 +1,15 @@
+<section class="card">
+  <h1>Prijava</h1>
+  <p *ngIf="registered" class="success" role="status">Registracija je uspela. Sada se možete prijaviti.</p>
+  <p *ngIf="error" class="error" role="alert">{{ error }}</p>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <label for="email">Email</label>
+    <input id="email" type="email" formControlName="email" autocomplete="username" [attr.aria-invalid]="form.controls['email'].touched && form.controls['email'].invalid" aria-describedby="email-hint">
+    <small id="email-hint" *ngIf="form.controls['email'].touched && form.controls['email'].invalid" class="error">Unesite ispravan email.</small>
+    <label for="lozinka">Lozinka</label>
+    <input id="lozinka" type="password" formControlName="lozinka" autocomplete="current-password" [attr.aria-invalid]="form.controls['lozinka'].touched && form.controls['lozinka'].invalid" aria-describedby="lozinka-hint">
+    <small id="lozinka-hint" *ngIf="form.controls['lozinka'].touched && form.controls['lozinka'].invalid" class="error">Unesite lozinku.</small>
+    <button type="submit" [disabled]="pending">{{ pending ? 'Slanje...' : 'Prijavi se' }}</button>
+  </form>
+  <p>Nemate nalog? <a routerLink="/auth/registracija">Registrujte se</a></p>
+</section>

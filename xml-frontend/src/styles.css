@@ -1,1 +1,135 @@
-/* You can add global styles to this file, and also import other style files */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #f3f5f8;
+    color: #243247;
+    font-family: Arial, sans-serif;
+    line-height: 1.5;
+}
+
+a {
+    color: #205b91;
+}
+
+.site-header {
+    background: white;
+    border-bottom: 1px solid #dce2e9;
+}
+
+.navigation {
+    max-width: 960px;
+    margin: auto;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.brand {
+    font-size: 20px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+nav a {
+    text-decoration: none;
+}
+
+nav .active {
+    text-decoration: underline;
+}
+
+main {
+    max-width: 960px;
+    padding: 36px 20px;
+    margin: auto;
+}
+
+.card {
+    max-width: 460px;
+    margin: auto;
+    padding: 28px;
+    background: white;
+    border: 1px solid #dce2e9;
+    border-radius: 10px;
+}
+
+h1 {
+    margin-top: 0;
+    font-size: 25px;
+}
+
+label {
+    display: block;
+    margin-top: 16px;
+    font-weight: bold;
+}
+
+input {
+    display: block;
+    width: 100%;
+    padding: 11px;
+    margin-top: 5px;
+    border: 1px solid #9aa9ba;
+    border-radius: 5px;
+    font: inherit;
+}
+
+input:focus-visible,
+button:focus-visible,
+a:focus-visible {
+    outline: 3px solid #84b8e4;
+    outline-offset: 2px;
+}
+
+button {
+    padding: 11px 18px;
+    border: 0;
+    border-radius: 5px;
+    color: white;
+    background: #205b91;
+    font: inherit;
+    cursor: pointer;
+}
+
+form button {
+    width: 100%;
+    margin-top: 24px;
+}
+
+button:disabled {
+    opacity: .65;
+    cursor: wait;
+}
+
+.link-button {
+    background: transparent;
+    color: #205b91;
+    padding: 0;
+}
+
+.error {
+    color: #9e2222;
+}
+
+.success {
+    color: #1b623b;
+    background: #edf8f0;
+    padding: 12px;
+}
+
+small {
+    display: block;
+    margin-top: 5px;
+}
