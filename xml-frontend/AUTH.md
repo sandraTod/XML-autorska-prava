@@ -1,5 +1,38 @@
 # Lokalno pokretanje i provera
 
+## Moji zahtevi i pregled A-1
+
+Posle prijave građanina navigacija sadrži „Moji zahtevi“ (`/moji-zahtevi`).
+Lista koristi postojeću backend rutu `GET /api/a1/zahtevi/listaZahteva`;
+pojedinačni prikaz koristi `GET /api/a1/zahtevi/{documentId}`. Vlasnik se ne šalje.
+Obe frontend stranice koriste postojeći guard za ulogu GRADJANIN.
+
+Za ručnu proveru:
+
+1. Pokrenite backend i frontend sa proxy-jem prema koracima ispod.
+2. Prijavite građanina i otvorite „Moji zahtevi“. Bez njegovih dokumenata
+   prikazuje se prazna lista sa porukom. Sa dokumentima se prikazuju naslov i vrsta.
+3. Ako nemate dokumente, kreirajte ih kroz postojeći Postman POST
+   `/api/a1/zahtevi`, koristeći građaninov token i `a1-zahtev-primer.xml`.
+   Backend dodeljuje ID i vlasnika. Frontend još nema obrazac za kreiranje.
+4. Kliknite „Pregled zahteva“. Proverite podnosioca, kontakt, delo, autorstvo,
+   potpis i prisutne opcione podatke. Probajte fizičko i pravno lice, anonimno
+   autorstvo, podnosioca kao autora i listu živih/preminulih autora.
+5. U istoj kartici prijavite drugog građanina: ne sme videti tuđe zahteve.
+   Direktni URL `/moji-zahtevi/{tuđiDocumentId}` prikazuje backend 404 poruku.
+   Nepostojeći bezbedan ID daje isti rezultat. Podaci ranijeg zahteva se brišu
+   pri promeni URL-a, pre učitavanja novog.
+6. Bez prijave obe stranice vode na prijavu. Službenik nema građansku stavku
+   navigacije; guard ga sa građanskih stranica vraća na početnu.
+7. Zaustavite bazu uz pokrenut backend: greška 503 se prikazuje kao poruka,
+   a ne kao prazna lista. U Network proverite Accept: application/xml,
+   tekstualni XML odgovor i postojeće Bearer zaglavlje, bez vlasnikId parametra.
+
+Prikaz koristi Angular tekstualne interpolacije, bez innerHTML. Reference priloga
+i potpisa su tekst, bez učitavanja resursa. Neispravan XML/namespace daje poruku
+o neispravnom odgovoru servera. Stari dokument bez ID-a može biti na listi, ali
+bez dugmeta za pregled jer lista ne sadrži naziv njegovog fajla u bazi.
+
 Pokrenite eXist-db na portu 8081 i backend iz Eclipse-a na portu 8080.
 Backend Run Configuration mora imati `EXIST_DB_PASSWORD`. Za službenika pratite
 `../xml-backend/SLUZBENIK.md`.

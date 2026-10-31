@@ -1,0 +1,14 @@
+<section class="card request-card" [attr.aria-busy]="loading">
+  <h1>Moji zahtevi</h1>
+  <p *ngIf="loading" role="status">Učitavanje zahteva...</p>
+  <p *ngIf="error" class="error" role="alert">{{ error }}</p>
+  <ng-container *ngIf="!loading && !error">
+    <p *ngIf="zahtevi.length === 0">Još nemate podnetih zahteva.</p>
+    <article class="request-item" *ngFor="let zahtev of zahtevi">
+      <h2>{{ zahtev.naslov }}</h2>
+      <p>Vrsta dela: {{ zahtev.vrsta }}</p>
+      <a class="button-link" *ngIf="zahtev.documentId; else noId" [routerLink]="['/moji-zahtevi', zahtev.documentId]">Pregled zahteva</a>
+      <ng-template #noId><p>Pregled nije dostupan: zahtev nema ispravan identifikator.</p></ng-template>
+    </article>
+  </ng-container>
+</section>

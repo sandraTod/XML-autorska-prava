@@ -133,3 +133,12 @@ small {
     display: block;
     margin-top: 5px;
 }
+
+.request-card { max-width: 850px; }
+.request-item, .request-section { border-top: 1px solid #dce2e9; margin-top: 24px; padding-top: 20px; }
+.request-card h2 { font-size: 20px; overflow-wrap: anywhere; }
+.button-link { display: inline-block; padding: 10px 16px; background: #205b91; color: white; border-radius: 5px; text-decoration: none; }
+.document-id, dd { overflow-wrap: anywhere; white-space: pre-wrap; }
+dl > div { margin-bottom: 14px; }
+dt { font-weight: bold; }
+dd { margin: 3px 0 0; }

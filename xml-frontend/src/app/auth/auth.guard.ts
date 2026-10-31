@@ -8,6 +8,9 @@ export class AuthGuard implements CanActivate {
 
   canActivate(route: ActivatedRouteSnapshot): boolean | UrlTree {
     if (!this.auth.token) return this.router.createUrlTree(['/auth/prijava']);
+    if (route.data['redirectCitizen'] && this.auth.role === 'GRADJANIN') {
+      return this.router.createUrlTree(['/moji-zahtevi']);
+    }
     const roles: string[] | undefined = route.data['roles'];
     return !roles || roles.includes(this.auth.role || '') ? true : this.router.createUrlTree(['/']);
   }

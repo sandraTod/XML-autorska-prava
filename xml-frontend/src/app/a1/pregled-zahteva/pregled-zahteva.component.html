@@ -1,0 +1,164 @@
+<section class="card request-card" [attr.aria-busy]="loading">
+  <a routerLink="/moji-zahtevi">← Moji zahtevi</a>
+  <h1>Pregled A-1 zahteva</h1>
+  <p *ngIf="loading" role="status">Učitavanje zahteva...</p>
+  <p *ngIf="error" class="error" role="alert">{{ error }}</p>
+  <ng-container *ngIf="zahtev as z">
+    <h2>{{ z.delo.naslov }}</h2>
+    <p *ngIf="z.id" class="document-id">ID: {{ z.id }}</p>
+    <section class="request-section"><h2>Podnosilac</h2>
+      <div *ngIf="z.podnosilac.fizickoLice as osoba"><h3>Fizičko lice</h3><dl>
+      <div><dt>Ime</dt><dd>{{ osoba.ime }}</dd></div>
+      <div><dt>Prezime</dt><dd>{{ osoba.prezime }}</dd></div>
+      <div><dt>Državljanstvo</dt><dd>{{ osoba.drzavljanstvo }}</dd></div>
+      </dl>
+    <div *ngIf="osoba.adresa as adresa" class="request-group">
+      <h3>Adresa</h3><dl>
+      <div><dt>Ulica</dt><dd>{{ adresa.ulica }}</dd></div>
+      <div><dt>Broj</dt><dd>{{ adresa.broj }}</dd></div>
+      <div><dt>Mesto</dt><dd>{{ adresa.mesto }}</dd></div>
+      <div *ngIf="adresa.postanskiBroj !== undefined"><dt>Poštanski broj</dt><dd>{{ adresa.postanskiBroj }}</dd></div>
+      <div><dt>Država</dt><dd>{{ adresa.drzava }}</dd></div>
+      </dl></div>
+      </div>
+      <div *ngIf="z.podnosilac.pravnoLice as pravnoLice"><h3>Pravno lice</h3><dl>
+      <div><dt>Poslovno ime</dt><dd>{{ pravnoLice.poslovnoIme }}</dd></div>
+      </dl>
+    <div *ngIf="pravnoLice.sediste as adresa" class="request-group">
+      <h3>Sedište</h3><dl>
+      <div><dt>Ulica</dt><dd>{{ adresa.ulica }}</dd></div>
+      <div><dt>Broj</dt><dd>{{ adresa.broj }}</dd></div>
+      <div><dt>Mesto</dt><dd>{{ adresa.mesto }}</dd></div>
+      <div *ngIf="adresa.postanskiBroj !== undefined"><dt>Poštanski broj</dt><dd>{{ adresa.postanskiBroj }}</dd></div>
+      <div><dt>Država</dt><dd>{{ adresa.drzava }}</dd></div>
+      </dl></div>
+      </div>
+      <div *ngIf="z.podnosilac.kontakt as kontakt"><h3>Kontakt</h3><dl>
+      <div *ngIf="kontakt.telefon !== undefined"><dt>Telefon</dt><dd>{{ kontakt.telefon }}</dd></div>
+      <div *ngIf="kontakt.email !== undefined"><dt>Email</dt><dd>{{ kontakt.email }}</dd></div>
+      </dl></div>
+    </section>
+    <section *ngIf="z.punomocnik as punomocnik" class="request-section"><h2>Punomoćnik</h2><dl>
+      <div><dt>Ime</dt><dd>{{ punomocnik.ime }}</dd></div>
+      <div><dt>Prezime</dt><dd>{{ punomocnik.prezime }}</dd></div>
+    </dl>
+    <div *ngIf="punomocnik.adresa as adresa" class="request-group">
+      <h3>Adresa</h3><dl>
+      <div><dt>Ulica</dt><dd>{{ adresa.ulica }}</dd></div>
+      <div><dt>Broj</dt><dd>{{ adresa.broj }}</dd></div>
+      <div><dt>Mesto</dt><dd>{{ adresa.mesto }}</dd></div>
+      <div *ngIf="adresa.postanskiBroj !== undefined"><dt>Poštanski broj</dt><dd>{{ adresa.postanskiBroj }}</dd></div>
+      <div><dt>Država</dt><dd>{{ adresa.drzava }}</dd></div>
+      </dl></div>
+    </section>
+    <section class="request-section"><h2>Delo</h2><dl>
+      <div><dt>Naslov</dt><dd>{{ z.delo.naslov }}</dd></div>
+      <div *ngIf="z.delo.alternativniNaslov !== undefined"><dt>Alternativni naslov</dt><dd>{{ z.delo.alternativniNaslov }}</dd></div>
+      <div><dt>Vrsta</dt><dd>{{ z.delo.vrsta }}</dd></div>
+      <div><dt>Forma zapisa</dt><dd>{{ z.delo.formaZapisa }}</dd></div>
+      <div *ngIf="z.delo.nacinKoriscenja !== undefined"><dt>Način korišćenja</dt><dd>{{ z.delo.nacinKoriscenja }}</dd></div>
+      <div *ngIf="z.delo.stvorenoURadnomOdnosu !== undefined"><dt>Stvoreno u radnom odnosu</dt><dd>{{ z.delo.stvorenoURadnomOdnosu ? 'Da' : 'Ne' }}</dd></div>
+    </dl></section>
+    <section class="request-section" *ngIf="z.delo.autorstvo as autorstvo">
+      <h2>Autori</h2>
+      <div *ngIf="autorstvo.podnosilacJeAutor as podnosilacAutor">
+        <p>Podnosilac je autor.</p><dl>
+      <div *ngIf="podnosilacAutor.pseudonimIliZnak !== undefined"><dt>Pseudonim ili znak</dt><dd>{{ podnosilacAutor.pseudonimIliZnak }}</dd></div>
+      </dl></div>
+      <p *ngIf="autorstvo.anonimniAutor">Anonimni autor.</p>
+      <article *ngFor="let autor of autorstvo.poznatiAutori; let i = index" class="request-group">
+        <h3>Autor {{ i + 1 }}</h3>
+        <div *ngIf="autor.ziviAutor as osoba"><h4>Živi autor</h4><dl>
+      <div><dt>Ime</dt><dd>{{ osoba.ime }}</dd></div>
+      <div><dt>Prezime</dt><dd>{{ osoba.prezime }}</dd></div>
+      <div><dt>Državljanstvo</dt><dd>{{ osoba.drzavljanstvo }}</dd></div>
+        </dl>
+    <div *ngIf="osoba.adresa as adresa" class="request-group">
+      <h3>Adresa</h3><dl>
+      <div><dt>Ulica</dt><dd>{{ adresa.ulica }}</dd></div>
+      <div><dt>Broj</dt><dd>{{ adresa.broj }}</dd></div>
+      <div><dt>Mesto</dt><dd>{{ adresa.mesto }}</dd></div>
+      <div *ngIf="adresa.postanskiBroj !== undefined"><dt>Poštanski broj</dt><dd>{{ adresa.postanskiBroj }}</dd></div>
+      <div><dt>Država</dt><dd>{{ adresa.drzava }}</dd></div>
+      </dl></div>
+        </div>
+        <div *ngIf="autor.preminuliAutor as preminuli"><h4>Preminuli autor</h4><dl>
+      <div><dt>Ime</dt><dd>{{ preminuli.ime }}</dd></div>
+      <div><dt>Prezime</dt><dd>{{ preminuli.prezime }}</dd></div>
+      <div><dt>Godina smrti</dt><dd>{{ preminuli.godinaSmrti }}</dd></div>
+        </dl></div>
+        <dl>
+      <div *ngIf="autor.pseudonimIliZnak !== undefined"><dt>Pseudonim ili znak</dt><dd>{{ autor.pseudonimIliZnak }}</dd></div>
+        </dl>
+      </article>
+    </section>
+    <ng-container *ngIf="z.delo.izvornoDelo as izvorno">
+      <section class="request-section"><h2>Izvorno delo</h2><dl>
+      <div><dt>Naslov</dt><dd>{{ izvorno.naslov }}</dd></div>
+      </dl></section>
+    <section class="request-section" *ngIf="izvorno.autorstvo as autorstvo">
+      <h2>Autori izvornog dela</h2>
+      <div *ngIf="autorstvo.podnosilacJeAutor as podnosilacAutor">
+        <p>Podnosilac je autor.</p><dl>
+      <div *ngIf="podnosilacAutor.pseudonimIliZnak !== undefined"><dt>Pseudonim ili znak</dt><dd>{{ podnosilacAutor.pseudonimIliZnak }}</dd></div>
+      </dl></div>
+      <p *ngIf="autorstvo.anonimniAutor">Anonimni autor.</p>
+      <article *ngFor="let autor of autorstvo.poznatiAutori; let i = index" class="request-group">
+        <h3>Autor {{ i + 1 }}</h3>
+        <div *ngIf="autor.ziviAutor as osoba"><h4>Živi autor</h4><dl>
+      <div><dt>Ime</dt><dd>{{ osoba.ime }}</dd></div>
+      <div><dt>Prezime</dt><dd>{{ osoba.prezime }}</dd></div>
+      <div><dt>Državljanstvo</dt><dd>{{ osoba.drzavljanstvo }}</dd></div>
+        </dl>
+    <div *ngIf="osoba.adresa as adresa" class="request-group">
+      <h3>Adresa</h3><dl>
+      <div><dt>Ulica</dt><dd>{{ adresa.ulica }}</dd></div>
+      <div><dt>Broj</dt><dd>{{ adresa.broj }}</dd></div>
+      <div><dt>Mesto</dt><dd>{{ adresa.mesto }}</dd></div>
+      <div *ngIf="adresa.postanskiBroj !== undefined"><dt>Poštanski broj</dt><dd>{{ adresa.postanskiBroj }}</dd></div>
+      <div><dt>Država</dt><dd>{{ adresa.drzava }}</dd></div>
+      </dl></div>
+        </div>
+        <div *ngIf="autor.preminuliAutor as preminuli"><h4>Preminuli autor</h4><dl>
+      <div><dt>Ime</dt><dd>{{ preminuli.ime }}</dd></div>
+      <div><dt>Prezime</dt><dd>{{ preminuli.prezime }}</dd></div>
+      <div><dt>Godina smrti</dt><dd>{{ preminuli.godinaSmrti }}</dd></div>
+        </dl></div>
+        <dl>
+      <div *ngIf="autor.pseudonimIliZnak !== undefined"><dt>Pseudonim ili znak</dt><dd>{{ autor.pseudonimIliZnak }}</dd></div>
+        </dl>
+      </article>
+    </section>
+    </ng-container>
+    <section *ngIf="z.potpis as potpis" class="request-section"><h2>Potpis</h2><dl>
+      <div><dt>Ime potpisnika</dt><dd>{{ potpis.imePotpisnika }}</dd></div>
+      <div><dt>Prezime potpisnika</dt><dd>{{ potpis.prezimePotpisnika }}</dd></div>
+      <div><dt>Referenca</dt><dd>{{ potpis.referenca }}</dd></div>
+    </dl></section>
+    <section *ngIf="z.prilozi.length" class="request-section">
+    <div *ngIf="z.prilozi.length"><h3>Prilozi</h3>
+      <article *ngFor="let prilog of z.prilozi; let i = index" class="request-group">
+        <h4>Prilog {{ i + 1 }}</h4><dl>
+      <div><dt>Naziv</dt><dd>{{ prilog.naziv }}</dd></div>
+      <div><dt>Tip</dt><dd>{{ prilog.tip }}</dd></div>
+      <div><dt>Referenca</dt><dd>{{ prilog.referenca }}</dd></div>
+        </dl>
+      </article>
+    </div>
+    </section>
+    <section *ngIf="z.sluzbeniDeo as sluzbeni" class="request-section"><h2>Službeni deo</h2><dl>
+      <div><dt>Broj prijave</dt><dd>{{ sluzbeni.brojPrijave }}</dd></div>
+      <div><dt>Datum podnošenja</dt><dd>{{ sluzbeni.datumPodnosenja }}</dd></div>
+    </dl>
+    <div *ngIf="sluzbeni.primljeniPrilozi.length"><h3>Primljeni prilozi</h3>
+      <article *ngFor="let prilog of sluzbeni.primljeniPrilozi; let i = index" class="request-group">
+        <h4>Prilog {{ i + 1 }}</h4><dl>
+      <div><dt>Naziv</dt><dd>{{ prilog.naziv }}</dd></div>
+      <div><dt>Tip</dt><dd>{{ prilog.tip }}</dd></div>
+      <div><dt>Referenca</dt><dd>{{ prilog.referenca }}</dd></div>
+        </dl>
+      </article>
+    </div>
+    </section>
+  </ng-container>
+</section>

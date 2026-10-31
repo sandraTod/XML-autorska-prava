@@ -6,11 +6,15 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { MojiZahteviComponent } from './a1/moji-zahtevi/moji-zahtevi.component';
+import { PregledZahtevaComponent } from './a1/pregled-zahteva/pregled-zahteva.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    PocetnaComponent
+    PocetnaComponent,
+    MojiZahteviComponent,
+    PregledZahtevaComponent
   ],
   imports: [
     BrowserModule,
