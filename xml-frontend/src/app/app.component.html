@@ -1,7 +1,7 @@
 <header class="site-header"><div class="navigation">
   <a class="brand" routerLink="/">Autorska prava</a>
   <nav aria-label="Glavna navigacija">
-    <ng-container *ngIf="auth.token; else publicLinks"><a *ngIf="auth.role === 'SLUZBENIK'" routerLink="/">Početna</a><a *ngIf="auth.role === 'GRADJANIN'" routerLink="/moji-zahtevi" routerLinkActive="active">Moji zahtevi</a><button class="link-button" (click)="logout()">Odjava</button></ng-container>
+    <ng-container *ngIf="auth.token; else publicLinks"><a *ngIf="auth.role === 'SLUZBENIK'" routerLink="/">Početna</a><a *ngIf="auth.role === 'GRADJANIN'" routerLink="/moji-zahtevi" routerLinkActive="active">Moji zahtevi</a><a *ngIf="auth.role === 'GRADJANIN'" routerLink="/novi-zahtev" routerLinkActive="active">Novi zahtev</a><button class="link-button" (click)="logout()">Odjava</button></ng-container>
     <ng-template #publicLinks><a routerLink="/auth/prijava" routerLinkActive="active">Prijava</a><a routerLink="/auth/registracija" routerLinkActive="active">Registracija</a></ng-template>
   </nav>
 </div></header>

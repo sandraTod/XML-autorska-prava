@@ -1,5 +1,36 @@
 # Lokalno pokretanje i provera
 
+## Podnošenje novog A-1 zahteva
+
+1. Pokrenite bazu i backend, zatim frontend komandom `npm start` iz `xml-frontend`.
+   Otvorite `http://localhost:4200` i prijavite građanina.
+2. Izaberite „Novi zahtev“ (`/novi-zahtev`). Popunite obavezna polja podnosioca,
+   dela i potpisa. Potpis je ime, prezime i referenca, bez elektronskog potpisivanja.
+3. Probajte fizičkog i pravnog podnosioca. Aktivirajte i isključite punomoćnika
+   i izvorno delo: neaktivna polja se ne proveravaju i ne šalju. Već uneti podaci
+   ostaju u formi pri promeni varijante. Pravno lice ne može biti izabrano kao autor.
+4. U autorstvu probajte anonimnog autora, podnosioca kao autora i poznate autore.
+   Dodajte živog i preminulog autora. Poznati autori moraju imati najmanje jednog
+   člana. Godina smrti je XML godina (npr. `2020`), ne datum. Isto autorstvo je
+   dostupno i za opciono izvorno delo.
+5. Za radni odnos probajte „Nije navedeno“, „Da“ i „Ne“. Prvi izbor izostavlja XML
+   element, a „Ne“ šalje `false`. Prazna opciona polja se izostavljaju. Dodati
+   prilog mora imati naziv, tip i referencu; nema otpremanja fajlova.
+6. Unesite naslov sa `&`, `<` ili navodnicima i kliknite „Podnesi zahtev“.
+   Tokom slanja dugme je isključeno. Posle 201 automatski se otvara pregled
+   zahteva preko ID-a iz XML odgovora. U „Mojim zahtevima“ treba da bude i novi zapis.
+7. U Network proverite POST `/api/a1/zahtevi`, XML namespace i redosled elemenata,
+   `Content-Type: application/xml` i postojeći Bearer token. Ulaz nema `id`,
+   `vlasnikId` niti `sluzbeniDeo`. Posle provere fizičkog podnosioca ponovite
+   podnošenje za pravno lice sa dva poznata autora i opcionim prilogom.
+8. Za grešku baze zaustavite eXist-db uz pokrenut backend i pošaljite validnu
+   formu. Poruka greške treba da se prikaže, slanje da se završi, a unos da ostane.
+   Bez prijave forma vodi na prijavu; službenik ne dobija građanski pristup formi.
+
+Automatski testovi koriste HTTP stub. Oni proveravaju XML generisanje, redosled,
+escaping, obaveznost aktivnih grana, uspešan POST i očuvanje forme kod greške.
+Stvarna baza nije deo tih testova.
+
 ## Moji zahtevi i pregled A-1
 
 Posle prijave građanina navigacija sadrži „Moji zahtevi“ (`/moji-zahtevi`).
@@ -12,9 +43,8 @@ Za ručnu proveru:
 1. Pokrenite backend i frontend sa proxy-jem prema koracima ispod.
 2. Prijavite građanina i otvorite „Moji zahtevi“. Bez njegovih dokumenata
    prikazuje se prazna lista sa porukom. Sa dokumentima se prikazuju naslov i vrsta.
-3. Ako nemate dokumente, kreirajte ih kroz postojeći Postman POST
-   `/api/a1/zahtevi`, koristeći građaninov token i `a1-zahtev-primer.xml`.
-   Backend dodeljuje ID i vlasnika. Frontend još nema obrazac za kreiranje.
+3. Ako nemate dokumente, kreirajte ih kroz „Novi zahtev“ prema koracima iznad.
+   Backend dodeljuje ID i vlasnika.
 4. Kliknite „Pregled zahteva“. Proverite podnosioca, kontakt, delo, autorstvo,
    potpis i prisutne opcione podatke. Probajte fizičko i pravno lice, anonimno
    autorstvo, podnosioca kao autora i listu živih/preminulih autora.

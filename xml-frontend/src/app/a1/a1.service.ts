@@ -5,7 +5,7 @@ import { map } from 'rxjs/operators';
 
 import {
   A1Pregled, A1Zahtev, A1Podnosilac, A1FizickoLice, A1Adresa,
-  A1Autorstvo, A1Prilog, A1Delo
+  A1Autorstvo, A1Prilog, A1Delo, A1Podnosenje
 } from './a1.model';
 
 @Injectable({ providedIn: 'root' })
@@ -15,6 +15,144 @@ export class A1Service {
   private readonly headers = new HttpHeaders({ Accept: 'application/xml' });
 
   constructor(private http: HttpClient) {}
+
+  create(zahtev: A1Podnosenje): Observable<A1Pregled> {
+    return this.http.post('/api/a1/zahtevi', this.toXml(zahtev), {
+      headers: this.headers.set('Content-Type', 'application/xml'),
+      responseType: 'text',
+      observe: 'response'
+    }).pipe(map(response => {
+      if (response.status !== 201 || !response.body) throw new Error('Neispravan odgovor servera.');
+      const saved = this.summary(this.parseRoot(response.body, 'zahtevA1', this.namespace));
+      if (!saved.documentId) throw new Error('Nedostaje identifikator sačuvanog zahteva.');
+      return saved;
+    }));
+  }
+
+  toXml(zahtev: A1Podnosenje): string {
+    const document = window.document.implementation.createDocument(this.namespace, 'zahtevA1', null);
+    const data = this.appendElement(document.documentElement, 'podaciGradjanina');
+    this.appendApplicant(data, zahtev.podnosilac);
+    if (zahtev.punomocnik) {
+      const proxy = this.appendElement(data, 'punomocnik');
+      this.appendText(proxy, 'ime', zahtev.punomocnik.ime);
+      this.appendText(proxy, 'prezime', zahtev.punomocnik.prezime);
+      this.appendAddress(proxy, 'adresa', zahtev.punomocnik.adresa);
+    }
+    this.appendWork(data, zahtev.delo);
+    const signature = this.appendElement(data, 'potpis');
+    this.appendText(signature, 'imePotpisnika', zahtev.potpis.imePotpisnika);
+    this.appendText(signature, 'prezimePotpisnika', zahtev.potpis.prezimePotpisnika);
+    this.appendText(signature, 'referenca', zahtev.potpis.referenca);
+    this.appendAttachments(data, zahtev.prilozi);
+    return new XMLSerializer().serializeToString(document).replace(/\r/g, '&#13;');
+  }
+
+  private appendApplicant(parent: Element, applicant: A1Podnosilac): void {
+    const element = this.appendElement(parent, 'podnosilac');
+    if (applicant.fizickoLice) {
+      this.appendPerson(element, 'fizickoLice', applicant.fizickoLice);
+    } else if (applicant.pravnoLice) {
+      const legal = this.appendElement(element, 'pravnoLice');
+      this.appendText(legal, 'poslovnoIme', applicant.pravnoLice.poslovnoIme);
+      this.appendAddress(legal, 'sediste', applicant.pravnoLice.sediste);
+    } else {
+      throw new Error('Nedostaje podnosilac.');
+    }
+    if (applicant.kontakt?.telefon?.trim() || applicant.kontakt?.email?.trim()) {
+      const contact = this.appendElement(element, 'kontakt');
+      this.appendOptionalText(contact, 'telefon', applicant.kontakt.telefon);
+      this.appendOptionalText(contact, 'email', applicant.kontakt.email);
+    }
+  }
+
+  private appendAddress(parent: Element, name: string, address: A1Adresa | undefined): void {
+    if (!address) throw new Error('Nedostaje adresa.');
+    const element = this.appendElement(parent, name);
+    this.appendText(element, 'ulica', address.ulica);
+    this.appendText(element, 'broj', address.broj);
+    this.appendText(element, 'mesto', address.mesto);
+    this.appendOptionalText(element, 'postanskiBroj', address.postanskiBroj);
+    this.appendText(element, 'drzava', address.drzava);
+  }
+
+  private appendPerson(parent: Element, name: string, person: A1FizickoLice): void {
+    const element = this.appendElement(parent, name);
+    this.appendText(element, 'ime', person.ime);
+    this.appendText(element, 'prezime', person.prezime);
+    this.appendAddress(element, 'adresa', person.adresa);
+    this.appendText(element, 'drzavljanstvo', person.drzavljanstvo);
+  }
+
+  private appendWork(parent: Element, work: A1Delo): void {
+    const element = this.appendElement(parent, 'delo');
+    this.appendText(element, 'naslov', work.naslov);
+    this.appendOptionalText(element, 'alternativniNaslov', work.alternativniNaslov);
+    if (work.izvornoDelo) {
+      const original = this.appendElement(element, 'izvornoDelo');
+      this.appendText(original, 'naslov', work.izvornoDelo.naslov);
+      this.appendAuthorship(original, work.izvornoDelo.autorstvo);
+    }
+    this.appendText(element, 'vrsta', work.vrsta);
+    this.appendText(element, 'formaZapisa', work.formaZapisa);
+    this.appendAuthorship(element, work.autorstvo);
+    if (work.stvorenoURadnomOdnosu !== undefined) {
+      this.appendText(element, 'stvorenoURadnomOdnosu', String(work.stvorenoURadnomOdnosu));
+    }
+    this.appendOptionalText(element, 'nacinKoriscenja', work.nacinKoriscenja);
+  }
+
+  private appendAuthorship(parent: Element, authorship: A1Autorstvo): void {
+    const element = this.appendElement(parent, 'autorstvo');
+    if (authorship.podnosilacJeAutor) {
+      const applicant = this.appendElement(element, 'podnosilacJeAutor');
+      this.appendOptionalText(applicant, 'pseudonimIliZnak', authorship.podnosilacJeAutor.pseudonimIliZnak);
+    } else if (authorship.anonimniAutor) {
+      this.appendElement(element, 'anonimniAutor');
+    } else {
+      if (!authorship.poznatiAutori.length) throw new Error('Nedostaju autori.');
+      const authors = this.appendElement(element, 'poznatiAutori');
+      authorship.poznatiAutori.forEach(author => {
+        const item = this.appendElement(authors, 'autor');
+        if (author.ziviAutor) {
+          this.appendPerson(item, 'ziviAutor', author.ziviAutor);
+        } else if (author.preminuliAutor) {
+          const deceased = this.appendElement(item, 'preminuliAutor');
+          this.appendText(deceased, 'ime', author.preminuliAutor.ime);
+          this.appendText(deceased, 'prezime', author.preminuliAutor.prezime);
+          this.appendText(deceased, 'godinaSmrti', author.preminuliAutor.godinaSmrti);
+        } else {
+          throw new Error('Nedostaju podaci autora.');
+        }
+        this.appendOptionalText(item, 'pseudonimIliZnak', author.pseudonimIliZnak);
+      });
+    }
+  }
+
+  private appendAttachments(parent: Element, attachments: A1Prilog[]): void {
+    if (!attachments.length) return;
+    const element = this.appendElement(parent, 'prilozi');
+    attachments.forEach(attachment => {
+      const item = this.appendElement(element, 'prilog');
+      this.appendText(item, 'naziv', attachment.naziv);
+      this.appendText(item, 'tip', attachment.tip);
+      this.appendText(item, 'referenca', attachment.referenca);
+    });
+  }
+
+  private appendElement(parent: Element, name: string): Element {
+    const element = parent.ownerDocument.createElementNS(this.namespace, name);
+    parent.appendChild(element);
+    return element;
+  }
+
+  private appendText(parent: Element, name: string, value: string): void {
+    this.appendElement(parent, name).textContent = value;
+  }
+
+  private appendOptionalText(parent: Element, name: string, value?: string): void {
+    if (value?.trim()) this.appendText(parent, name, value);
+  }
 
   findMyRequests(): Observable<A1Pregled[]> {
     return this.http.get('/api/a1/zahtevi/listaZahteva', { headers: this.headers, responseType: 'text' })

@@ -1,0 +1,672 @@
+<section class="card request-card">
+  <a routerLink="/moji-zahtevi">
+    ← Moji zahtevi
+  </a>
+  <h1>
+    Novi A-1 zahtev
+  </h1>
+  <p>
+    Polja označena zvezdicom (*) su obavezna. Potpis i prilozi unose se kao reference.
+  </p>
+  <p *ngIf="error" class="error" role="alert">
+    {{ error }}
+  </p>
+  <p *ngIf="submitted && form.invalid" class="error" role="alert">
+    Proverite označena polja u aktivnim delovima forme.
+  </p>
+  <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="pending">
+    <fieldset>
+      <legend>
+        Podnosilac
+      </legend>
+      <label>
+        Vrsta podnosioca
+        <select formControlName="podnosilacTip">
+          <option value="fizickoLice">
+            Fizičko lice
+          </option>
+          <option value="pravnoLice">
+            Pravno lice
+          </option>
+        </select>
+      </label>
+      <div formGroupName="podnosilac">
+        <div *ngIf="isPhysical" formGroupName="fizickoLice">
+          <h2>
+            Fizičko lice
+          </h2>
+          <label>
+            Ime *
+            <input type="text" formControlName="ime" [attr.aria-invalid]="invalid('podnosilac.fizickoLice.ime')" required>
+          </label>
+          <small *ngIf="invalid('podnosilac.fizickoLice.ime')" class="error">
+            Unesite nepraznu vrednost.
+          </small>
+          <label>
+            Prezime *
+            <input type="text" formControlName="prezime" [attr.aria-invalid]="invalid('podnosilac.fizickoLice.prezime')" required>
+          </label>
+          <small *ngIf="invalid('podnosilac.fizickoLice.prezime')" class="error">
+            Unesite nepraznu vrednost.
+          </small>
+          <div formGroupName="adresa">
+            <h3>
+              Adresa
+            </h3>
+            <label>
+              Ulica *
+              <input type="text" formControlName="ulica" [attr.aria-invalid]="invalid('podnosilac.fizickoLice.adresa.ulica')" required>
+            </label>
+            <small *ngIf="invalid('podnosilac.fizickoLice.adresa.ulica')" class="error">
+              Unesite nepraznu vrednost.
+            </small>
+            <label>
+              Broj *
+              <input type="text" formControlName="broj" [attr.aria-invalid]="invalid('podnosilac.fizickoLice.adresa.broj')" required>
+            </label>
+            <small *ngIf="invalid('podnosilac.fizickoLice.adresa.broj')" class="error">
+              Unesite nepraznu vrednost.
+            </small>
+            <label>
+              Mesto *
+              <input type="text" formControlName="mesto" [attr.aria-invalid]="invalid('podnosilac.fizickoLice.adresa.mesto')" required>
+            </label>
+            <small *ngIf="invalid('podnosilac.fizickoLice.adresa.mesto')" class="error">
+              Unesite nepraznu vrednost.
+            </small>
+            <label>
+              Poštanski broj
+              <input type="text" formControlName="postanskiBroj" [attr.aria-invalid]="invalid('podnosilac.fizickoLice.adresa.postanskiBroj')">
+            </label>
+            <small *ngIf="invalid('podnosilac.fizickoLice.adresa.postanskiBroj')" class="error">
+              Proverite vrednost.
+            </small>
+            <label>
+              Država *
+              <input type="text" formControlName="drzava" [attr.aria-invalid]="invalid('podnosilac.fizickoLice.adresa.drzava')" required>
+            </label>
+            <small *ngIf="invalid('podnosilac.fizickoLice.adresa.drzava')" class="error">
+              Unesite nepraznu vrednost.
+            </small>
+          </div>
+          <label>
+            Državljanstvo *
+            <input type="text" formControlName="drzavljanstvo" [attr.aria-invalid]="invalid('podnosilac.fizickoLice.drzavljanstvo')" required>
+          </label>
+          <small *ngIf="invalid('podnosilac.fizickoLice.drzavljanstvo')" class="error">
+            Unesite nepraznu vrednost.
+          </small>
+        </div>
+        <div *ngIf="!isPhysical" formGroupName="pravnoLice">
+          <h2>
+            Pravno lice
+          </h2>
+          <label>
+            Poslovno ime *
+            <input type="text" formControlName="poslovnoIme" [attr.aria-invalid]="invalid('podnosilac.pravnoLice.poslovnoIme')" required>
+          </label>
+          <small *ngIf="invalid('podnosilac.pravnoLice.poslovnoIme')" class="error">
+            Unesite nepraznu vrednost.
+          </small>
+          <div formGroupName="sediste">
+            <h3>
+              Sedište
+            </h3>
+            <label>
+              Ulica *
+              <input type="text" formControlName="ulica" [attr.aria-invalid]="invalid('podnosilac.pravnoLice.sediste.ulica')" required>
+            </label>
+            <small *ngIf="invalid('podnosilac.pravnoLice.sediste.ulica')" class="error">
+              Unesite nepraznu vrednost.
+            </small>
+            <label>
+              Broj *
+              <input type="text" formControlName="broj" [attr.aria-invalid]="invalid('podnosilac.pravnoLice.sediste.broj')" required>
+            </label>
+            <small *ngIf="invalid('podnosilac.pravnoLice.sediste.broj')" class="error">
+              Unesite nepraznu vrednost.
+            </small>
+            <label>
+              Mesto *
+              <input type="text" formControlName="mesto" [attr.aria-invalid]="invalid('podnosilac.pravnoLice.sediste.mesto')" required>
+            </label>
+            <small *ngIf="invalid('podnosilac.pravnoLice.sediste.mesto')" class="error">
+              Unesite nepraznu vrednost.
+            </small>
+            <label>
+              Poštanski broj
+              <input type="text" formControlName="postanskiBroj" [attr.aria-invalid]="invalid('podnosilac.pravnoLice.sediste.postanskiBroj')">
+            </label>
+            <small *ngIf="invalid('podnosilac.pravnoLice.sediste.postanskiBroj')" class="error">
+              Proverite vrednost.
+            </small>
+            <label>
+              Država *
+              <input type="text" formControlName="drzava" [attr.aria-invalid]="invalid('podnosilac.pravnoLice.sediste.drzava')" required>
+            </label>
+            <small *ngIf="invalid('podnosilac.pravnoLice.sediste.drzava')" class="error">
+              Unesite nepraznu vrednost.
+            </small>
+          </div>
+        </div>
+        <div formGroupName="kontakt">
+          <h3>
+            Kontakt (opciono)
+          </h3>
+          <label>
+            Telefon
+            <input type="text" formControlName="telefon" [attr.aria-invalid]="invalid('podnosilac.kontakt.telefon')">
+          </label>
+          <small *ngIf="invalid('podnosilac.kontakt.telefon')" class="error">
+            Proverite vrednost.
+          </small>
+          <label>
+            Email
+            <input type="text" formControlName="email" [attr.aria-invalid]="invalid('podnosilac.kontakt.email')">
+          </label>
+          <small *ngIf="invalid('podnosilac.kontakt.email')" class="error">
+            Proverite vrednost.
+          </small>
+        </div>
+      </div>
+    </fieldset>
+    <label class="checkbox-label">
+      <input type="checkbox" formControlName="imaPunomocnika">
+      Zahtev podnosi punomoćnik
+    </label>
+    <fieldset *ngIf="form.controls['imaPunomocnika'].value" formGroupName="punomocnik">
+      <legend>
+        Punomoćnik
+      </legend>
+      <label>
+        Ime *
+        <input type="text" formControlName="ime" [attr.aria-invalid]="invalid('punomocnik.ime')" required>
+      </label>
+      <small *ngIf="invalid('punomocnik.ime')" class="error">
+        Unesite nepraznu vrednost.
+      </small>
+      <label>
+        Prezime *
+        <input type="text" formControlName="prezime" [attr.aria-invalid]="invalid('punomocnik.prezime')" required>
+      </label>
+      <small *ngIf="invalid('punomocnik.prezime')" class="error">
+        Unesite nepraznu vrednost.
+      </small>
+      <div formGroupName="adresa">
+        <h3>
+          Adresa
+        </h3>
+        <label>
+          Ulica *
+          <input type="text" formControlName="ulica" [attr.aria-invalid]="invalid('punomocnik.adresa.ulica')" required>
+        </label>
+        <small *ngIf="invalid('punomocnik.adresa.ulica')" class="error">
+          Unesite nepraznu vrednost.
+        </small>
+        <label>
+          Broj *
+          <input type="text" formControlName="broj" [attr.aria-invalid]="invalid('punomocnik.adresa.broj')" required>
+        </label>
+        <small *ngIf="invalid('punomocnik.adresa.broj')" class="error">
+          Unesite nepraznu vrednost.
+        </small>
+        <label>
+          Mesto *
+          <input type="text" formControlName="mesto" [attr.aria-invalid]="invalid('punomocnik.adresa.mesto')" required>
+        </label>
+        <small *ngIf="invalid('punomocnik.adresa.mesto')" class="error">
+          Unesite nepraznu vrednost.
+        </small>
+        <label>
+          Poštanski broj
+          <input type="text" formControlName="postanskiBroj" [attr.aria-invalid]="invalid('punomocnik.adresa.postanskiBroj')">
+        </label>
+        <small *ngIf="invalid('punomocnik.adresa.postanskiBroj')" class="error">
+          Proverite vrednost.
+        </small>
+        <label>
+          Država *
+          <input type="text" formControlName="drzava" [attr.aria-invalid]="invalid('punomocnik.adresa.drzava')" required>
+        </label>
+        <small *ngIf="invalid('punomocnik.adresa.drzava')" class="error">
+          Unesite nepraznu vrednost.
+        </small>
+      </div>
+    </fieldset>
+    <fieldset formGroupName="delo">
+      <legend>
+        Delo
+      </legend>
+      <label>
+        Naslov *
+        <input type="text" formControlName="naslov" [attr.aria-invalid]="invalid('delo.naslov')" required>
+      </label>
+      <small *ngIf="invalid('delo.naslov')" class="error">
+        Unesite nepraznu vrednost.
+      </small>
+      <label>
+        Alternativni naslov
+        <input type="text" formControlName="alternativniNaslov" [attr.aria-invalid]="invalid('delo.alternativniNaslov')">
+      </label>
+      <small *ngIf="invalid('delo.alternativniNaslov')" class="error">
+        Proverite vrednost.
+      </small>
+      <label>
+        Vrsta dela *
+        <input type="text" formControlName="vrsta" [attr.aria-invalid]="invalid('delo.vrsta')" required>
+      </label>
+      <small *ngIf="invalid('delo.vrsta')" class="error">
+        Unesite nepraznu vrednost.
+      </small>
+      <label>
+        Forma zapisa *
+        <input type="text" formControlName="formaZapisa" [attr.aria-invalid]="invalid('delo.formaZapisa')" required>
+      </label>
+      <small *ngIf="invalid('delo.formaZapisa')" class="error">
+        Unesite nepraznu vrednost.
+      </small>
+      <fieldset formGroupName="autorstvo">
+        <legend>
+          Autorstvo
+        </legend>
+        <label>
+          Autorstvo *
+          <select formControlName="tip">
+            <option value="anonimniAutor">
+              Anonimni autor
+            </option>
+            <option value="podnosilacJeAutor" [disabled]="!isPhysical">
+              Podnosilac je autor
+            </option>
+            <option value="poznatiAutori">
+              Poznati autori
+            </option>
+          </select>
+        </label>
+        <ng-container *ngIf="workAuthorship.controls['tip'].value === 'podnosilacJeAutor'">
+          <label>
+            Pseudonim ili znak
+            <input type="text" formControlName="pseudonimIliZnak" [attr.aria-invalid]="invalid('delo.autorstvo.pseudonimIliZnak')">
+          </label>
+          <small *ngIf="invalid('delo.autorstvo.pseudonimIliZnak')" class="error">
+            Proverite vrednost.
+          </small>
+        </ng-container>
+        <div *ngIf="workAuthorship.controls['tip'].value === 'poznatiAutori'" formArrayName="poznatiAutori">
+          <fieldset *ngFor="let autor of authors(workAuthorship).controls; let i = index" [formGroupName]="i">
+            <legend>
+              Autor {{ i + 1 }}
+            </legend>
+            <label>
+              Autor *
+              <select formControlName="tip">
+                <option value="ziviAutor">
+                  Živi autor
+                </option>
+                <option value="preminuliAutor">
+                  Preminuli autor
+                </option>
+              </select>
+            </label>
+            <div *ngIf="autor.get('tip')?.value === 'ziviAutor'" formGroupName="ziviAutor">
+              <label>
+                Ime *
+                <input type="text" formControlName="ime" [attr.aria-invalid]="invalid('delo.autorstvo.poznatiAutori.' + i + '.ziviAutor.ime')" required>
+              </label>
+              <small *ngIf="invalid('delo.autorstvo.poznatiAutori.' + i + '.ziviAutor.ime')" class="error">
+                Unesite nepraznu vrednost.
+              </small>
+              <label>
+                Prezime *
+                <input type="text" formControlName="prezime" [attr.aria-invalid]="invalid('delo.autorstvo.poznatiAutori.' + i + '.ziviAutor.prezime')" required>
+              </label>
+              <small *ngIf="invalid('delo.autorstvo.poznatiAutori.' + i + '.ziviAutor.prezime')" class="error">
+                Unesite nepraznu vrednost.
+              </small>
+              <div formGroupName="adresa">
+                <h3>
+                  Adresa autora
+                </h3>
+                <label>
+                  Ulica *
+                  <input type="text" formControlName="ulica" [attr.aria-invalid]="invalid('delo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.ulica')" required>
+                </label>
+                <small *ngIf="invalid('delo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.ulica')" class="error">
+                  Unesite nepraznu vrednost.
+                </small>
+                <label>
+                  Broj *
+                  <input type="text" formControlName="broj" [attr.aria-invalid]="invalid('delo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.broj')" required>
+                </label>
+                <small *ngIf="invalid('delo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.broj')" class="error">
+                  Unesite nepraznu vrednost.
+                </small>
+                <label>
+                  Mesto *
+                  <input type="text" formControlName="mesto" [attr.aria-invalid]="invalid('delo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.mesto')" required>
+                </label>
+                <small *ngIf="invalid('delo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.mesto')" class="error">
+                  Unesite nepraznu vrednost.
+                </small>
+                <label>
+                  Poštanski broj
+                  <input type="text" formControlName="postanskiBroj" [attr.aria-invalid]="invalid('delo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.postanskiBroj')">
+                </label>
+                <small *ngIf="invalid('delo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.postanskiBroj')" class="error">
+                  Proverite vrednost.
+                </small>
+                <label>
+                  Država *
+                  <input type="text" formControlName="drzava" [attr.aria-invalid]="invalid('delo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.drzava')" required>
+                </label>
+                <small *ngIf="invalid('delo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.drzava')" class="error">
+                  Unesite nepraznu vrednost.
+                </small>
+              </div>
+              <label>
+                Državljanstvo *
+                <input type="text" formControlName="drzavljanstvo" [attr.aria-invalid]="invalid('delo.autorstvo.poznatiAutori.' + i + '.ziviAutor.drzavljanstvo')" required>
+              </label>
+              <small *ngIf="invalid('delo.autorstvo.poznatiAutori.' + i + '.ziviAutor.drzavljanstvo')" class="error">
+                Unesite nepraznu vrednost.
+              </small>
+            </div>
+            <div *ngIf="autor.get('tip')?.value === 'preminuliAutor'" formGroupName="preminuliAutor">
+              <label>
+                Ime *
+                <input type="text" formControlName="ime" [attr.aria-invalid]="invalid('delo.autorstvo.poznatiAutori.' + i + '.preminuliAutor.ime')" required>
+              </label>
+              <small *ngIf="invalid('delo.autorstvo.poznatiAutori.' + i + '.preminuliAutor.ime')" class="error">
+                Unesite nepraznu vrednost.
+              </small>
+              <label>
+                Prezime *
+                <input type="text" formControlName="prezime" [attr.aria-invalid]="invalid('delo.autorstvo.poznatiAutori.' + i + '.preminuliAutor.prezime')" required>
+              </label>
+              <small *ngIf="invalid('delo.autorstvo.poznatiAutori.' + i + '.preminuliAutor.prezime')" class="error">
+                Unesite nepraznu vrednost.
+              </small>
+              <label>
+                Godina smrti (npr. 2020) *
+                <input type="text" formControlName="godinaSmrti" [attr.aria-invalid]="invalid('delo.autorstvo.poznatiAutori.' + i + '.preminuliAutor.godinaSmrti')" required>
+              </label>
+              <small *ngIf="invalid('delo.autorstvo.poznatiAutori.' + i + '.preminuliAutor.godinaSmrti')" class="error">
+                Unesite ispravnu godinu, npr. 2020.
+              </small>
+            </div>
+            <label>
+              Pseudonim ili znak
+              <input type="text" formControlName="pseudonimIliZnak" [attr.aria-invalid]="invalid('delo.autorstvo.poznatiAutori.' + i + '.pseudonimIliZnak')">
+            </label>
+            <small *ngIf="invalid('delo.autorstvo.poznatiAutori.' + i + '.pseudonimIliZnak')" class="error">
+              Proverite vrednost.
+            </small>
+            <button type="button" class="secondary-button" (click)="removeAuthor(workAuthorship, i)" [disabled]="authors(workAuthorship).length === 1 || pending">
+              Ukloni autora
+            </button>
+          </fieldset>
+          <button type="button" class="secondary-button" (click)="addAuthor(workAuthorship)" [disabled]="pending">
+            Dodaj autora
+          </button>
+        </div>
+      </fieldset>
+      <label class="checkbox-label">
+        <input type="checkbox" formControlName="imaIzvornoDelo">
+        Delo se zasniva na izvornom delu
+      </label>
+      <fieldset *ngIf="form.get('delo.imaIzvornoDelo')?.value" formGroupName="izvornoDelo">
+        <legend>
+          Izvorno delo
+        </legend>
+        <label>
+          Naslov izvornog dela *
+          <input type="text" formControlName="naslov" [attr.aria-invalid]="invalid('delo.izvornoDelo.naslov')" required>
+        </label>
+        <small *ngIf="invalid('delo.izvornoDelo.naslov')" class="error">
+          Unesite nepraznu vrednost.
+        </small>
+        <fieldset formGroupName="autorstvo">
+          <legend>
+            Autorstvo
+          </legend>
+          <label>
+            Autorstvo *
+            <select formControlName="tip">
+              <option value="anonimniAutor">
+                Anonimni autor
+              </option>
+              <option value="podnosilacJeAutor" [disabled]="!isPhysical">
+                Podnosilac je autor
+              </option>
+              <option value="poznatiAutori">
+                Poznati autori
+              </option>
+            </select>
+          </label>
+          <ng-container *ngIf="originalAuthorship.controls['tip'].value === 'podnosilacJeAutor'">
+            <label>
+              Pseudonim ili znak
+              <input type="text" formControlName="pseudonimIliZnak" [attr.aria-invalid]="invalid('delo.izvornoDelo.autorstvo.pseudonimIliZnak')">
+            </label>
+            <small *ngIf="invalid('delo.izvornoDelo.autorstvo.pseudonimIliZnak')" class="error">
+              Proverite vrednost.
+            </small>
+          </ng-container>
+          <div *ngIf="originalAuthorship.controls['tip'].value === 'poznatiAutori'" formArrayName="poznatiAutori">
+            <fieldset *ngFor="let autor of authors(originalAuthorship).controls; let i = index" [formGroupName]="i">
+              <legend>
+                Autor {{ i + 1 }}
+              </legend>
+              <label>
+                Autor *
+                <select formControlName="tip">
+                  <option value="ziviAutor">
+                    Živi autor
+                  </option>
+                  <option value="preminuliAutor">
+                    Preminuli autor
+                  </option>
+                </select>
+              </label>
+              <div *ngIf="autor.get('tip')?.value === 'ziviAutor'" formGroupName="ziviAutor">
+                <label>
+                  Ime *
+                  <input type="text" formControlName="ime" [attr.aria-invalid]="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.ziviAutor.ime')" required>
+                </label>
+                <small *ngIf="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.ziviAutor.ime')" class="error">
+                  Unesite nepraznu vrednost.
+                </small>
+                <label>
+                  Prezime *
+                  <input type="text" formControlName="prezime" [attr.aria-invalid]="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.ziviAutor.prezime')" required>
+                </label>
+                <small *ngIf="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.ziviAutor.prezime')" class="error">
+                  Unesite nepraznu vrednost.
+                </small>
+                <div formGroupName="adresa">
+                  <h3>
+                    Adresa autora
+                  </h3>
+                  <label>
+                    Ulica *
+                    <input type="text" formControlName="ulica" [attr.aria-invalid]="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.ulica')" required>
+                  </label>
+                  <small *ngIf="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.ulica')" class="error">
+                    Unesite nepraznu vrednost.
+                  </small>
+                  <label>
+                    Broj *
+                    <input type="text" formControlName="broj" [attr.aria-invalid]="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.broj')" required>
+                  </label>
+                  <small *ngIf="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.broj')" class="error">
+                    Unesite nepraznu vrednost.
+                  </small>
+                  <label>
+                    Mesto *
+                    <input type="text" formControlName="mesto" [attr.aria-invalid]="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.mesto')" required>
+                  </label>
+                  <small *ngIf="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.mesto')" class="error">
+                    Unesite nepraznu vrednost.
+                  </small>
+                  <label>
+                    Poštanski broj
+                    <input type="text" formControlName="postanskiBroj" [attr.aria-invalid]="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.postanskiBroj')">
+                  </label>
+                  <small *ngIf="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.postanskiBroj')" class="error">
+                    Proverite vrednost.
+                  </small>
+                  <label>
+                    Država *
+                    <input type="text" formControlName="drzava" [attr.aria-invalid]="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.drzava')" required>
+                  </label>
+                  <small *ngIf="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.ziviAutor.adresa.drzava')" class="error">
+                    Unesite nepraznu vrednost.
+                  </small>
+                </div>
+                <label>
+                  Državljanstvo *
+                  <input type="text" formControlName="drzavljanstvo" [attr.aria-invalid]="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.ziviAutor.drzavljanstvo')" required>
+                </label>
+                <small *ngIf="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.ziviAutor.drzavljanstvo')" class="error">
+                  Unesite nepraznu vrednost.
+                </small>
+              </div>
+              <div *ngIf="autor.get('tip')?.value === 'preminuliAutor'" formGroupName="preminuliAutor">
+                <label>
+                  Ime *
+                  <input type="text" formControlName="ime" [attr.aria-invalid]="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.preminuliAutor.ime')" required>
+                </label>
+                <small *ngIf="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.preminuliAutor.ime')" class="error">
+                  Unesite nepraznu vrednost.
+                </small>
+                <label>
+                  Prezime *
+                  <input type="text" formControlName="prezime" [attr.aria-invalid]="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.preminuliAutor.prezime')" required>
+                </label>
+                <small *ngIf="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.preminuliAutor.prezime')" class="error">
+                  Unesite nepraznu vrednost.
+                </small>
+                <label>
+                  Godina smrti (npr. 2020) *
+                  <input type="text" formControlName="godinaSmrti" [attr.aria-invalid]="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.preminuliAutor.godinaSmrti')" required>
+                </label>
+                <small *ngIf="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.preminuliAutor.godinaSmrti')" class="error">
+                  Unesite ispravnu godinu, npr. 2020.
+                </small>
+              </div>
+              <label>
+                Pseudonim ili znak
+                <input type="text" formControlName="pseudonimIliZnak" [attr.aria-invalid]="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.pseudonimIliZnak')">
+              </label>
+              <small *ngIf="invalid('delo.izvornoDelo.autorstvo.poznatiAutori.' + i + '.pseudonimIliZnak')" class="error">
+                Proverite vrednost.
+              </small>
+              <button type="button" class="secondary-button" (click)="removeAuthor(originalAuthorship, i)" [disabled]="authors(originalAuthorship).length === 1 || pending">
+                Ukloni autora
+              </button>
+            </fieldset>
+            <button type="button" class="secondary-button" (click)="addAuthor(originalAuthorship)" [disabled]="pending">
+              Dodaj autora
+            </button>
+          </div>
+        </fieldset>
+      </fieldset>
+      <label>
+        Stvoreno u radnom odnosu
+        <select formControlName="stvorenoURadnomOdnosu">
+          <option value="">
+            Nije navedeno
+          </option>
+          <option value="true">
+            Da
+          </option>
+          <option value="false">
+            Ne
+          </option>
+        </select>
+      </label>
+      <label>
+        Način korišćenja
+        <input type="text" formControlName="nacinKoriscenja" [attr.aria-invalid]="invalid('delo.nacinKoriscenja')">
+      </label>
+      <small *ngIf="invalid('delo.nacinKoriscenja')" class="error">
+        Proverite vrednost.
+      </small>
+    </fieldset>
+    <fieldset formGroupName="potpis">
+      <legend>
+        Potpis
+      </legend>
+      <p>
+        Unesite postojeću referencu na prikaz potpisa.
+      </p>
+      <label>
+        Ime potpisnika *
+        <input type="text" formControlName="imePotpisnika" [attr.aria-invalid]="invalid('potpis.imePotpisnika')" required>
+      </label>
+      <small *ngIf="invalid('potpis.imePotpisnika')" class="error">
+        Unesite nepraznu vrednost.
+      </small>
+      <label>
+        Prezime potpisnika *
+        <input type="text" formControlName="prezimePotpisnika" [attr.aria-invalid]="invalid('potpis.prezimePotpisnika')" required>
+      </label>
+      <small *ngIf="invalid('potpis.prezimePotpisnika')" class="error">
+        Unesite nepraznu vrednost.
+      </small>
+      <label>
+        Referenca potpisa *
+        <input type="text" formControlName="referenca" [attr.aria-invalid]="invalid('potpis.referenca')" required>
+      </label>
+      <small *ngIf="invalid('potpis.referenca')" class="error">
+        Unesite nepraznu vrednost.
+      </small>
+    </fieldset>
+    <fieldset formArrayName="prilozi">
+      <legend>
+        Prilozi (opciono)
+      </legend>
+      <p>
+        Unose se reference, bez otpremanja fajlova.
+      </p>
+      <fieldset *ngFor="let prilog of attachments.controls; let i = index" [formGroupName]="i">
+        <legend>
+          Prilog {{ i + 1 }}
+        </legend>
+        <label>
+          Naziv *
+          <input type="text" formControlName="naziv" [attr.aria-invalid]="invalid('prilozi.' + i + '.naziv')" required>
+        </label>
+        <small *ngIf="invalid('prilozi.' + i + '.naziv')" class="error">
+          Unesite nepraznu vrednost.
+        </small>
+        <label>
+          Tip *
+          <input type="text" formControlName="tip" [attr.aria-invalid]="invalid('prilozi.' + i + '.tip')" required>
+        </label>
+        <small *ngIf="invalid('prilozi.' + i + '.tip')" class="error">
+          Unesite nepraznu vrednost.
+        </small>
+        <label>
+          Referenca *
+          <input type="text" formControlName="referenca" [attr.aria-invalid]="invalid('prilozi.' + i + '.referenca')" required>
+        </label>
+        <small *ngIf="invalid('prilozi.' + i + '.referenca')" class="error">
+          Unesite nepraznu vrednost.
+        </small>
+        <button type="button" class="secondary-button" (click)="attachments.removeAt(i)" [disabled]="pending">
+          Ukloni prilog
+        </button>
+      </fieldset>
+      <button type="button" class="secondary-button" (click)="addAttachment()" [disabled]="pending">
+        Dodaj prilog
+      </button>
+    </fieldset>
+    <p *ngIf="pending" role="status">
+      Slanje zahteva...
+    </p>
+    <button type="submit" [disabled]="pending">
+      {{ pending ? 'Slanje...' : 'Podnesi zahtev' }}
+    </button>
+  </form>
+</section>

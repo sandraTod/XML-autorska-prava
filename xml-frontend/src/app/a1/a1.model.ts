@@ -102,3 +102,15 @@ export interface A1Zahtev extends A1Pregled {
   prilozi: A1Prilog[];
   sluzbeniDeo?: A1SluzbeniDeo;
 }
+
+export interface A1Podnosenje {
+  podnosilac: A1Podnosilac;
+  punomocnik?: A1Punomocnik;
+  delo: A1Delo;
+  potpis: A1Potpis;
+  prilozi: A1Prilog[];
+}
+
+export interface A1AutorUnos extends A1Autor {
+  tip: 'ziviAutor' | 'preminuliAutor';
+}

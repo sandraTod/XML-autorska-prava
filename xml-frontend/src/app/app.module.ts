@@ -3,6 +3,8 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './auth/auth.interceptor';
 import { PocetnaComponent } from './pocetna/pocetna.component';
 import { BrowserModule } from '@angular/platform-browser';
+import { ReactiveFormsModule } from '@angular/forms';
+import { NoviZahtevComponent } from './a1/novi-zahtev/novi-zahtev.component';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -14,11 +16,13 @@ import { PregledZahtevaComponent } from './a1/pregled-zahteva/pregled-zahteva.co
     AppComponent,
     PocetnaComponent,
     MojiZahteviComponent,
-    PregledZahtevaComponent
+    PregledZahtevaComponent,
+    NoviZahtevComponent
   ],
   imports: [
     BrowserModule,
     HttpClientModule,
+    ReactiveFormsModule,
     AppRoutingModule
   ],
   providers: [{ provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }],
