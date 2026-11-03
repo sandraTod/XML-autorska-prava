@@ -1,5 +1,5 @@
 <section class="card request-card" [attr.aria-busy]="loading">
-  <a routerLink="/moji-zahtevi">← Moji zahtevi</a>
+  <a [routerLink]="listRoute">← {{ listTitle }}</a>
   <h1>Pregled A-1 zahteva</h1>
   <p *ngIf="loading" role="status">Učitavanje zahteva...</p>
   <p *ngIf="error" class="error" role="alert">{{ error }}</p>

@@ -156,13 +156,20 @@ export class A1Service {
 
   findMyRequests(): Observable<A1Pregled[]> {
     return this.http.get('/api/a1/zahtevi/listaZahteva', { headers: this.headers, responseType: 'text' })
-      .pipe(map(xml => {
-        const root = this.parseRoot(xml, 'listaZahteva', 'https://example.org/autorska-prava/a1-lista');
-        return this.children(root).map(element => {
-          if (element.localName !== 'zahtevA1') throw new Error('Neispravan XML odgovor servera.');
-          return this.summary(element);
-        });
-      }));
+      .pipe(map(xml => this.parseList(xml)));
+  }
+
+  findAllRequests(): Observable<A1Pregled[]> {
+    return this.http.get('/api/sluzbenik/a1/zahtevi', { headers: this.headers, responseType: 'text' })
+      .pipe(map(xml => this.parseList(xml)));
+  }
+
+  private parseList(xml: string): A1Pregled[] {
+    const root = this.parseRoot(xml, 'listaZahteva', 'https://example.org/autorska-prava/a1-lista');
+    return this.children(root).map(element => {
+      if (element.localName !== 'zahtevA1') throw new Error('Neispravan XML odgovor servera.');
+      return this.summary(element);
+    });
   }
 
   findById(documentId: string): Observable<A1Zahtev> {

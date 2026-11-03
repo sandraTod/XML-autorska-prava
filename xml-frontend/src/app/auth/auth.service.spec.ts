@@ -105,14 +105,14 @@ describe('XML authentication', () => {
     expect(sessionStorage.getItem('expiresAt')).toBeNull();
   });
 
-  it('redirects only citizens from the root route to their requests', () => {
+  it('redirects each role from the root route to its requests list', () => {
     const route = new ActivatedRouteSnapshot();
-    route.data = { roles: ['GRADJANIN', 'SLUZBENIK'], redirectCitizen: true };
+    route.data = { roles: ['GRADJANIN', 'SLUZBENIK'], redirectCitizen: true, redirectOfficial: true };
     const guard = TestBed.inject(AuthGuard);
     sessionStorage.setItem('token', token());
     sessionStorage.setItem('expiresAt', expiresAt());
     expect(TestBed.inject(Router).serializeUrl(guard.canActivate(route) as UrlTree)).toBe('/moji-zahtevi');
     sessionStorage.setItem('token', token('SLUZBENIK'));
-    expect(guard.canActivate(route)).toBeTrue();
+    expect(TestBed.inject(Router).serializeUrl(guard.canActivate(route) as UrlTree)).toBe('/sluzbenik/zahtevi');
   });
 });

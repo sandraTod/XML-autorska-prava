@@ -11,6 +11,9 @@ export class AuthGuard implements CanActivate {
     if (route.data['redirectCitizen'] && this.auth.role === 'GRADJANIN') {
       return this.router.createUrlTree(['/moji-zahtevi']);
     }
+    if (route.data['redirectOfficial'] && this.auth.role === 'SLUZBENIK') {
+      return this.router.createUrlTree(['/sluzbenik/zahtevi']);
+    }
     const roles: string[] | undefined = route.data['roles'];
     return !roles || roles.includes(this.auth.role || '') ? true : this.router.createUrlTree(['/']);
   }

@@ -22,7 +22,7 @@ export class PrijavaComponent {
     this.auth.login(email, lozinka).pipe(finalize(() => this.pending = false)).subscribe({
       next: () => {
         this.form.reset();
-        void this.router.navigate([this.auth.role === 'GRADJANIN' ? '/moji-zahtevi' : '/']);
+        void this.router.navigate([this.auth.role === 'GRADJANIN' ? '/moji-zahtevi' : '/sluzbenik/zahtevi']);
       },
       error: error => this.error = this.auth.errorMessage(error)
     });

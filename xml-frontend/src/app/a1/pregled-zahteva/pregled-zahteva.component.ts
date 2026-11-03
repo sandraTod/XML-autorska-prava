@@ -10,6 +10,8 @@ import { AuthService } from '../../auth/auth.service';
 export class PregledZahtevaComponent implements OnInit, OnDestroy {
   loading = true;
   error = '';
+  listRoute: string = this.route.snapshot.data['listRoute'] || '/moji-zahtevi';
+  listTitle: string = this.route.snapshot.data['listTitle'] || 'Moji zahtevi';
   zahtev: A1Zahtev | null = null;
   private routeSubscription?: Subscription;
   private requestSubscription?: Subscription;
