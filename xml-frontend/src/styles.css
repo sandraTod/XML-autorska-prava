@@ -76,7 +76,7 @@ label {
     font-weight: bold;
 }
 
-input {
+input, textarea {
     display: block;
     width: 100%;
     padding: 11px;
@@ -87,6 +87,7 @@ input {
 }
 
 input:focus-visible,
+textarea:focus-visible,
 button:focus-visible,
 a:focus-visible {
     outline: 3px solid #84b8e4;
@@ -149,5 +150,5 @@ legend { font-weight: bold; padding: 0 6px; }
 .checkbox-label { display: flex; align-items: center; gap: 10px; }
 .checkbox-label input { width: auto; margin: 0; }
 form .secondary-button { width: auto; margin-top: 16px; background: #edf1f6; color: #205b91; border: 1px solid #9aa9ba; }
-input[aria-invalid="true"] { border-color: #9e2222; }
+input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: #9e2222; }
 select:focus-visible { outline: 3px solid #84b8e4; outline-offset: 2px; }

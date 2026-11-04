@@ -5,7 +5,7 @@ import { map } from 'rxjs/operators';
 
 import {
   A1Pregled, A1Zahtev, A1Podnosilac, A1FizickoLice, A1Adresa,
-  A1Autorstvo, A1Prilog, A1Delo, A1Podnosenje
+  A1Autorstvo, A1Prilog, A1Delo, A1Podnosenje, A1Odluka, A1Resenje
 } from './a1.model';
 
 @Injectable({ providedIn: 'root' })
@@ -15,6 +15,64 @@ export class A1Service {
   private readonly headers = new HttpHeaders({ Accept: 'application/xml' });
 
   constructor(private http: HttpClient) {}
+
+  findResolution(documentId: string): Observable<A1Resenje> {
+    this.checkDocumentId(documentId);
+    return this.http.get('/api/a1/zahtevi/' + documentId + '/resenje', {
+      headers: this.headers, responseType: 'text'
+    }).pipe(map(xml => this.readResolution(xml)));
+  }
+
+  createResolution(documentId: string, odluka: A1Odluka): Observable<A1Resenje> {
+    this.checkDocumentId(documentId);
+    return this.http.post('/api/sluzbenik/a1/zahtevi/' + documentId + '/resenje', this.decisionToXml(odluka), {
+      headers: this.headers.set('Content-Type', 'application/xml'),
+      responseType: 'text', observe: 'response'
+    }).pipe(map(response => {
+      if (response.status !== 201 || !response.body) throw new Error('Neispravan odgovor servera.');
+      return this.readResolution(response.body);
+    }));
+  }
+
+  decisionToXml(odluka: A1Odluka): string {
+    const namespace = 'https://example.org/autorska-prava/odluka';
+    const document = window.document.implementation.createDocument(namespace, 'odluka', null);
+    if (odluka.ishod !== 'odobrenje' && odluka.ishod !== 'odbijanje') throw new Error('Neispravna odluka.');
+    const outcome = document.createElementNS(namespace, odluka.ishod);
+    document.documentElement.appendChild(outcome);
+    if (odluka.ishod === 'odbijanje') {
+      if (!odluka.obrazlozenje?.trim()) throw new Error('Obrazloženje je obavezno.');
+      const reason = document.createElementNS(namespace, 'obrazlozenje');
+      reason.textContent = odluka.obrazlozenje;
+      outcome.appendChild(reason);
+    }
+    return new XMLSerializer().serializeToString(document).replace(/\r/g, '&#13;');
+  }
+
+  private readResolution(xml: string): A1Resenje {
+    const namespace = 'https://example.org/autorska-prava/resenje';
+    const root = this.parseRoot(xml, 'resenje', namespace);
+    const official = this.required(root, 'sluzbenik', namespace);
+    const approval = this.children(root, namespace).find(element => element.localName === 'odobrenje');
+    const rejection = this.children(root, namespace).find(element => element.localName === 'odbijanje');
+    if (!!approval === !!rejection) throw new Error('Neispravan XML odgovor servera.');
+    return {
+      id: root.getAttribute('id') || '',
+      zahtevRef: this.required(root, 'zahtevRef', namespace).textContent || '',
+      datumOdluke: this.required(root, 'datumOdluke', namespace).textContent || '',
+      sluzbenik: {
+        id: official.getAttribute('id') || '',
+        ime: this.required(official, 'ime', namespace).textContent || '',
+        prezime: this.required(official, 'prezime', namespace).textContent || ''
+      },
+      odobrenje: approval ? { sifraDela: this.required(approval, 'sifraDela', namespace).textContent || '' } : undefined,
+      odbijanje: rejection ? { obrazlozenje: this.required(rejection, 'obrazlozenje', namespace).textContent || '' } : undefined
+    };
+  }
+
+  private checkDocumentId(documentId: string): void {
+    if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,99}$/.test(documentId)) throw new Error('Neispravan identifikator zahteva.');
+  }
 
   create(zahtev: A1Podnosenje): Observable<A1Pregled> {
     return this.http.post('/api/a1/zahtevi', this.toXml(zahtev), {
@@ -317,16 +375,16 @@ export class A1Service {
     return this.children(parent).find(element => element.localName === name);
   }
 
-  private children(parent: Element): Element[] {
+  private children(parent: Element, namespace = this.namespace): Element[] {
     const children = Array.from(parent.children);
-    if (children.some(element => element.namespaceURI !== this.namespace)) {
+    if (children.some(element => element.namespaceURI !== namespace)) {
       throw new Error('Neispravan XML odgovor servera.');
     }
     return children;
   }
 
-  private required(parent: Element, name: string): Element {
-    const element = this.children(parent).find(child => child.localName === name);
+  private required(parent: Element, name: string, namespace = this.namespace): Element {
+    const element = this.children(parent, namespace).find(child => child.localName === name);
     if (!element) throw new Error('Neispravan XML odgovor servera.');
     return element;
   }

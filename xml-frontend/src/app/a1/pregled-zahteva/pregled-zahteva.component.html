@@ -6,6 +6,49 @@
   <ng-container *ngIf="zahtev as z">
     <h2>{{ z.delo.naslov }}</h2>
     <p *ngIf="z.id" class="document-id">ID: {{ z.id }}</p>
+    <section *ngIf="isOfficial" class="request-section" [attr.aria-busy]="resolutionLoading || decisionPending">
+      <h2>Odluka i rešenje</h2>
+      <p *ngIf="resolutionLoading" role="status">Učitavanje rešenja...</p>
+      <p *ngIf="resolutionError" class="error" role="alert">{{ resolutionError }}</p>
+      <p *ngIf="decisionError" class="error" role="alert">{{ decisionError }}</p>
+      <div *ngIf="resenje as r">
+        <dl>
+          <div><dt>Datum odluke</dt><dd>{{ r.datumOdluke }}</dd></div>
+          <div><dt>Ime službenika</dt><dd>{{ r.sluzbenik.ime }}</dd></div>
+          <div><dt>Prezime službenika</dt><dd>{{ r.sluzbenik.prezime }}</dd></div>
+        </dl>
+        <div *ngIf="r.odobrenje as odobrenje">
+          <h3>Zahtev je odobren</h3>
+          <dl><div><dt>Šifra dela</dt><dd>{{ odobrenje.sifraDela }}</dd></div></dl>
+        </div>
+        <div *ngIf="r.odbijanje as odbijanje">
+          <h3>Zahtev je odbijen</h3>
+          <dl><div><dt>Obrazloženje</dt><dd>{{ odbijanje.obrazlozenje }}</dd></div></dl>
+        </div>
+      </div>
+      <form *ngIf="resolutionMissing && !resolutionLoading && !resenje && !resolutionError"
+            [formGroup]="decisionForm" (ngSubmit)="submitDecision()">
+        <label>
+          Odluka
+          <select formControlName="ishod" [attr.disabled]="decisionPending ? '' : null">
+            <option value="odobrenje">Odobri</option>
+            <option value="odbijanje">Odbij</option>
+          </select>
+        </label>
+        <ng-container *ngIf="decisionForm.controls['ishod'].value === 'odbijanje'">
+          <label>
+            Obrazloženje *
+            <textarea formControlName="obrazlozenje" rows="4" [readOnly]="decisionPending"
+                      [attr.aria-invalid]="decisionForm.controls['obrazlozenje'].touched && decisionForm.controls['obrazlozenje'].invalid"></textarea>
+          </label>
+          <small *ngIf="decisionForm.controls['obrazlozenje'].touched && decisionForm.controls['obrazlozenje'].invalid" class="error">
+            Unesite neprazno obrazloženje odbijanja.
+          </small>
+        </ng-container>
+        <p *ngIf="decisionPending" role="status">Slanje odluke...</p>
+        <button type="submit" [disabled]="decisionPending">{{ decisionPending ? 'Slanje...' : 'Sačuvaj odluku' }}</button>
+      </form>
+    </section>
     <section class="request-section"><h2>Podnosilac</h2>
       <div *ngIf="z.podnosilac.fizickoLice as osoba"><h3>Fizičko lice</h3><dl>
       <div><dt>Ime</dt><dd>{{ osoba.ime }}</dd></div>

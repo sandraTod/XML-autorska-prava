@@ -114,3 +114,17 @@ export interface A1Podnosenje {
 export interface A1AutorUnos extends A1Autor {
   tip: 'ziviAutor' | 'preminuliAutor';
 }
+
+export interface A1Odluka {
+  ishod: 'odobrenje' | 'odbijanje';
+  obrazlozenje?: string;
+}
+
+export interface A1Resenje {
+  id: string;
+  zahtevRef: string;
+  datumOdluke: string;
+  sluzbenik: { id: string; ime: string; prezime: string };
+  odobrenje?: { sifraDela: string };
+  odbijanje?: { obrazlozenje: string };
+}

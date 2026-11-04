@@ -3,6 +3,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
+import { ReactiveFormsModule } from '@angular/forms';
 import { SviZahteviComponent } from './svi-zahtevi.component';
 import { PregledZahtevaComponent } from '../pregled-zahteva/pregled-zahteva.component';
 
@@ -20,12 +21,12 @@ describe('Official A1 requests', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, RouterTestingModule],
+      imports: [HttpClientTestingModule, RouterTestingModule, ReactiveFormsModule],
       declarations: [SviZahteviComponent, PregledZahtevaComponent],
       providers: [{
         provide: ActivatedRoute,
         useValue: {
-          snapshot: { data: { listRoute: '/sluzbenik/zahtevi', listTitle: 'Svi zahtevi' } },
+          snapshot: { data: { roles: ['SLUZBENIK'], listRoute: '/sluzbenik/zahtevi', listTitle: 'Svi zahtevi' } },
           paramMap: of(convertToParamMap({ documentId: 'old-one' }))
         }
       }]
@@ -87,6 +88,7 @@ describe('Official A1 requests', () => {
     const detail = TestBed.createComponent(PregledZahtevaComponent);
     detail.detectChanges();
     http.expectOne('/api/a1/zahtevi/old-one').flush(document('old-one'));
+    http.expectOne('/api/a1/zahtevi/old-one/resenje').flush('', { status: 404, statusText: 'Not Found' });
     detail.detectChanges();
     expect(detail.nativeElement.textContent).toContain('Primer DOO');
     expect(detail.nativeElement.textContent).toContain('Naslov old-one');
