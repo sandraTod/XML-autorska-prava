@@ -63,7 +63,7 @@ export class PregledZahtevaComponent implements OnInit, OnDestroy {
           next: zahtev => {
             this.zahtev = zahtev;
             this.loading = false;
-            if (this.isOfficial) this.loadResolution();
+            this.loadResolution();
           },
           error: error => { this.error = this.auth.errorMessage(error); this.loading = false; }
         });

@@ -6,11 +6,14 @@
   <ng-container *ngIf="zahtev as z">
     <h2>{{ z.delo.naslov }}</h2>
     <p *ngIf="z.id" class="document-id">ID: {{ z.id }}</p>
-    <section *ngIf="isOfficial" class="request-section" [attr.aria-busy]="resolutionLoading || decisionPending">
-      <h2>Odluka i rešenje</h2>
+    <section class="request-section" [attr.aria-busy]="resolutionLoading || decisionPending">
+      <h2>{{ isOfficial ? 'Odluka i rešenje' : 'Rešenje' }}</h2>
       <p *ngIf="resolutionLoading" role="status">Učitavanje rešenja...</p>
       <p *ngIf="resolutionError" class="error" role="alert">{{ resolutionError }}</p>
       <p *ngIf="decisionError" class="error" role="alert">{{ decisionError }}</p>
+      <p *ngIf="!isOfficial && resolutionMissing && !resolutionLoading && !resolutionError && !resenje" role="status">
+        Rešenje još nije doneto.
+      </p>
       <div *ngIf="resenje as r">
         <dl>
           <div><dt>Datum odluke</dt><dd>{{ r.datumOdluke }}</dd></div>
@@ -26,7 +29,7 @@
           <dl><div><dt>Obrazloženje</dt><dd>{{ odbijanje.obrazlozenje }}</dd></div></dl>
         </div>
       </div>
-      <form *ngIf="resolutionMissing && !resolutionLoading && !resenje && !resolutionError"
+      <form *ngIf="isOfficial && resolutionMissing && !resolutionLoading && !resenje && !resolutionError"
             [formGroup]="decisionForm" (ngSubmit)="submitDecision()">
         <label>
           Odluka

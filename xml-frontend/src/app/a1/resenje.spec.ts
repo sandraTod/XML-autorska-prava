@@ -179,13 +179,67 @@ describe('Official decisions and resolutions', () => {
     expect(fixture!.nativeElement.querySelector('form')).toBeNull();
   });
 
-  it('does not load resolutions or show decisions in the citizen details view', () => {
+  it('shows a pending-resolution message for citizen 404 without allowing decisions', () => {
     route.snapshot.data.roles = ['GRADJANIN'];
     const component = open();
-    http.expectNone(resolutionUrl);
+    expect(component.resolutionLoading).toBeTrue();
+    http.expectOne(resolutionUrl).flush('', { status: 404, statusText: 'Not Found' });
+    fixture!.detectChanges();
     expect(component.isOfficial).toBeFalse();
+    expect(fixture!.nativeElement.textContent).toContain('Rešenje još nije doneto.');
+    expect(fixture!.nativeElement.querySelector('form')).toBeNull();
     component.submitDecision();
     http.expectNone(decisionUrl);
     expect(fixture!.nativeElement.textContent).not.toContain('Odluka i rešenje');
+  });
+
+  it('shows both resolution outcomes to citizens using the shared display', () => {
+    route.snapshot.data.roles = ['GRADJANIN'];
+    const component = open();
+    http.expectOne(resolutionUrl).flush(resolution());
+    fixture!.detectChanges();
+    expect(fixture!.nativeElement.textContent).toContain('2026-11-03');
+    expect(fixture!.nativeElement.textContent).toContain('Jelena');
+    expect(fixture!.nativeElement.textContent).toContain('Primer');
+    expect(fixture!.nativeElement.textContent).toContain('AD-one');
+    expect(fixture!.nativeElement.querySelector('form')).toBeNull();
+    route.paramMap.next(convertToParamMap({ documentId: 'one' }));
+    http.expectOne(requestUrl).flush(requestXml);
+    http.expectOne(resolutionUrl).flush(rejection());
+    fixture!.detectChanges();
+    expect(fixture!.nativeElement.textContent).toContain('Zahtev je odbijen');
+    expect(fixture!.nativeElement.textContent).toContain('Nedostaje prilog & primer.');
+    expect(fixture!.nativeElement.textContent).not.toContain('AD-one');
+    expect(fixture!.nativeElement.querySelector('form')).toBeNull();
+    component.submitDecision();
+    http.expectNone(decisionUrl);
+  });
+
+  it('shows citizen resolution errors instead of treating them as a pending decision', () => {
+    route.snapshot.data.roles = ['GRADJANIN'];
+    const component = open();
+    http.expectOne(resolutionUrl).flush('<greska><poruka>Baza nije dostupna.</poruka></greska>', { status: 503, statusText: 'Unavailable' });
+    fixture!.detectChanges();
+    expect(component.resolutionMissing).toBeFalse();
+    expect(fixture!.nativeElement.textContent).toContain('Baza nije dostupna.');
+    expect(fixture!.nativeElement.textContent).not.toContain('Rešenje još nije doneto.');
+    expect(fixture!.nativeElement.querySelector('form')).toBeNull();
+    route.paramMap.next(convertToParamMap({ documentId: 'one' }));
+    http.expectOne(requestUrl).flush(requestXml);
+    http.expectOne(resolutionUrl).flush('<broken>');
+    fixture!.detectChanges();
+    expect(component.resolutionError).toBeTruthy();
+    expect(fixture!.nativeElement.textContent).not.toContain('Rešenje još nije doneto.');
+  });
+
+  it('does not request a resolution when the citizen cannot read the A1 request', () => {
+    route.snapshot.data.roles = ['GRADJANIN'];
+    fixture = TestBed.createComponent(PregledZahtevaComponent);
+    fixture.detectChanges();
+    http.expectOne(requestUrl).flush('<greska><poruka>Zahtev nije pronađen.</poruka></greska>', { status: 404, statusText: 'Not Found' });
+    fixture.detectChanges();
+    http.expectNone(resolutionUrl);
+    expect(fixture.nativeElement.textContent).toContain('Zahtev nije pronađen.');
+    expect(fixture.nativeElement.textContent).not.toContain('Rešenje još nije doneto.');
   });
 });
