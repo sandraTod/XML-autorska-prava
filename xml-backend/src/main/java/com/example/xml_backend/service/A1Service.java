@@ -11,6 +11,7 @@ public interface A1Service {
     String findMyRequests();
     String findAllRequests();
     String searchAccepted(String q);
+    String searchPending(String q);
 
     record CreatedDocument(URI location, String xml) {}
 }

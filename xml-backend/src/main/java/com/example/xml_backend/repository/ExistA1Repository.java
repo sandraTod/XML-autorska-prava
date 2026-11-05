@@ -31,6 +31,7 @@ public class ExistA1Repository implements A1Repository {
     private final HttpClient client;
     private final String ownerQuery = loadQuery("a1-find-by-owner.xq");
     private final String searchQuery = loadQuery("a1-search-accepted.xq");
+    private final String pendingQuery = loadQuery("a1-search-pending.xq");
     private final String allQuery = loadQuery("a1-find-all.xq");
 
     public ExistA1Repository(
@@ -104,6 +105,11 @@ public class ExistA1Repository implements A1Repository {
     @Override
     public String searchAccepted(String q) {
         return execute(searchQuery, Map.of("q", q == null ? "" : q));
+    }
+
+    @Override
+    public String searchPending(String q) {
+        return execute(pendingQuery, Map.of("q", q == null ? "" : q));
     }
 
     private String execute(String query, Map<String, String> variables) {

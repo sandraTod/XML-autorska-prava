@@ -40,6 +40,7 @@ class A1ServiceAuthorizationTest {
     }
 
     private void assertUnauthenticated() {
+        assertThrows(AuthenticationCredentialsNotFoundException.class, () -> service.searchPending(""));
         assertThrows(AuthenticationCredentialsNotFoundException.class, () -> service.searchAccepted(""));
         assertThrows(AuthenticationCredentialsNotFoundException.class, () -> service.create("<broken>"));
         assertThrows(AuthenticationCredentialsNotFoundException.class, () -> service.findById("test"));
@@ -53,6 +54,7 @@ class A1ServiceAuthorizationTest {
                 "https://example.org/nalozi/test", null, List.of(new SimpleGrantedAuthority("ROLE_OTHER"))));
         assertThrows(AccessDeniedException.class, () -> service.create("<broken>"));
         assertThrows(AccessDeniedException.class, () -> service.searchAccepted(""));
+        assertThrows(AccessDeniedException.class, () -> service.searchPending(""));
         assertThrows(AccessDeniedException.class, () -> service.findById("test"));
         assertThrows(AccessDeniedException.class, () -> service.findAllRequests());
         assertThrows(AccessDeniedException.class, () -> service.findMyRequests());
@@ -68,6 +70,7 @@ class A1ServiceAuthorizationTest {
         SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
                 "https://example.org/nalozi/citizen", null, List.of(new SimpleGrantedAuthority("ROLE_GRADJANIN"))));
         assertThrows(AccessDeniedException.class, () -> service.findAllRequests());
+        assertThrows(AccessDeniedException.class, () -> service.searchPending(""));
         verifyNoInteractions(repository, xmlService);
     }
 }
