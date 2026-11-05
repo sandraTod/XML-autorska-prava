@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SAMO ZA RAZVOJ: izmišljeni naslovi i identifikatori zahteva. -->
+<p:rezultatiPretrage xmlns:p="https://example.org/autorska-prava/a1-pretraga"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="https://example.org/autorska-prava/a1-pretraga a1-pretraga.xsd">
+  <p:delo zahtevId="http://localhost:8080/api/a1/zahtevi/123e4567-e89b-42d3-a456-426614174001">
+    <p:naslov>Priče sa izmišljene obale</p:naslov>
+    <p:vrsta>Književno delo</p:vrsta>
+  </p:delo>
+  <p:delo zahtevId="http://localhost:8080/api/a1/zahtevi/123e4567-e89b-42d3-a456-426614174002">
+    <p:naslov>Zamišljeni grad</p:naslov>
+    <p:vrsta>Fotografsko delo</p:vrsta>
+  </p:delo>
+</p:rezultatiPretrage>

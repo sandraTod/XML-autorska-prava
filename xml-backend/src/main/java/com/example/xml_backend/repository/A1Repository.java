@@ -10,4 +10,5 @@ public interface A1Repository {
     
     String findByOwner(String vlasnikId);
     String findAll();
+    String searchAccepted(String q);
 }

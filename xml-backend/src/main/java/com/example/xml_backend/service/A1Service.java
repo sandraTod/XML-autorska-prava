@@ -10,6 +10,7 @@ public interface A1Service {
     Optional<String> findById(String documentId);
     String findMyRequests();
     String findAllRequests();
+    String searchAccepted(String q);
 
     record CreatedDocument(URI location, String xml) {}
 }

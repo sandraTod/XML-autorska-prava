@@ -53,6 +53,8 @@ import com.example.xml_backend.service.KorisnikXmlService;
 import com.example.xml_backend.service.PrijavaOdgovorXmlService;
 import io.jsonwebtoken.Jwts;
 import com.example.xml_backend.service.EmailNormalizer;
+import com.example.xml_backend.service.A1PretragaXmlService;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 @SpringBootTest
 class JwtSecurityTest {
@@ -66,6 +68,7 @@ class JwtSecurityTest {
     @Autowired private JwtTokenService tokens;
     @Autowired private A1XmlService a1Xml;
     @Autowired private A1ListaXmlService listXml;
+    @Autowired private A1PretragaXmlService searchXml;
     @Autowired private KorisnikXmlService userXml;
     @Autowired private PrijavaOdgovorXmlService responseXml;
     @Autowired private SecretKey signingKey;
@@ -75,6 +78,36 @@ class JwtSecurityTest {
     private MockMvc mvc;
     private String example;
     private KorisnikType user;
+
+    @Test
+    void acceptedSearchAllowsBothRolesAndReturnsOnlyTheValidatedProjection() throws Exception {
+        String query = "  PriČE\t sa   obale ";
+        when(a1Repository.searchAccepted(query)).thenReturn(resource("a1-pretraga-primer.xml"));
+        for (UlogaType role : new UlogaType[]{UlogaType.GRADJANIN, UlogaType.SLUZBENIK}) {
+            user.setUloga(role);
+            String response = mvc.perform(get("/api/a1/zavedena-dela").param("q", query)
+                    .header("Authorization", "Bearer " + tokens.issue(user).token()))
+                    .andExpect(status().isOk()).andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_XML))
+                    .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+            assertEquals(2, searchXml.fromXml(response).getDelo().size());
+            assertFalse(response.contains("podnosilac"));
+            assertFalse(response.contains("vlasnikId"));
+            assertFalse(response.contains("potpis"));
+        }
+        verify(a1Repository, org.mockito.Mockito.times(2)).searchAccepted(query);
+        when(a1Repository.searchAccepted("")).thenReturn("<rezultatiPretrage xmlns='https://example.org/autorska-prava/a1-pretraga'/>");
+        mvc.perform(get("/api/a1/zavedena-dela").header("Authorization", "Bearer " + tokens.issue(user).token()))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/a1/zavedena-dela")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/a1/zavedena-dela").with(user("other").roles("OTHER"))).andExpect(status().isForbidden());
+        when(a1Repository.searchAccepted("error")).thenThrow(new A1RepositoryException("test"));
+        when(a1Repository.searchAccepted("invalid")).thenReturn("<broken>");
+        for (String q : new String[]{"error", "invalid"}) {
+            mvc.perform(get("/api/a1/zavedena-dela").param("q", q)
+                    .header("Authorization", "Bearer " + tokens.issue(user).token()))
+                    .andExpect(status().isServiceUnavailable()).andExpect(xpath("/greska/status").string("503"));
+        }
+    }
 
     @BeforeEach
     void setup() throws Exception {

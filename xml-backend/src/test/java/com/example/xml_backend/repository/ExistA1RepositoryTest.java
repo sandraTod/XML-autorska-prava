@@ -108,6 +108,35 @@ class ExistA1RepositoryTest {
     }
 
     @Test
+    void acceptedSearchBindsLiteralQueryAndPreservesDatabaseErrors() throws Exception {
+        var received = new AtomicReference<String>();
+        String empty = "<rezultatiPretrage xmlns='https://example.org/autorska-prava/a1-pretraga'/>";
+        server.createContext("/exist/rest/db", exchange -> {
+            received.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+            byte[] body = empty.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(status.get(), body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        String input = "  O'Hara & <test> [.*]\t  ";
+        assertEquals(empty, repository.searchAccepted(input));
+        var factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        var document = factory.newDocumentBuilder().parse(new ByteArrayInputStream(received.get().getBytes(StandardCharsets.UTF_8)));
+        String query = document.getElementsByTagNameNS("http://exist.sourceforge.net/NS/exist", "text").item(0).getTextContent();
+        assertFalse(query.contains(input));
+        assertTrue(query.contains("declare variable $q as xs:string external"));
+        assertFalse(query.contains("vlasnikId"));
+        assertEquals(input, document.getElementsByTagNameNS("http://exist-db.org/xquery/types/serialized", "value").item(0).getTextContent());
+        for (int code : new int[]{401, 403, 404, 500}) {
+            status.set(code);
+            assertThrows(A1RepositoryException.class, () -> repository.searchAccepted(input));
+        }
+        server.stop(0);
+        assertThrows(A1RepositoryException.class, () -> repository.searchAccepted(input));
+    }
+
+    @Test
     void allQueryHasNoOwnerFilterAndPreservesErrors() throws Exception {
         var received = new AtomicReference<String>();
         String emptyList = "<l:listaZahteva xmlns:l='https://example.org/autorska-prava/a1-lista'/>";

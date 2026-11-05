@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:p="https://example.org/autorska-prava/a1-pretraga"
+           targetNamespace="https://example.org/autorska-prava/a1-pretraga"
+           elementFormDefault="qualified">
+  <xs:simpleType name="NeprazanTekstType">
+    <xs:restriction base="xs:token">
+      <xs:minLength value="1"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="UrlType">
+    <xs:restriction base="xs:anyURI">
+      <xs:minLength value="1"/>
+      <xs:pattern value="https?://[^/\s?#]+/[^\s?#]+"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="ZavedenoDeloType">
+    <xs:sequence>
+      <xs:element name="naslov" type="p:NeprazanTekstType"/>
+      <xs:element name="vrsta" type="p:NeprazanTekstType"/>
+    </xs:sequence>
+    <xs:attribute name="zahtevId" type="p:UrlType" use="required"/>
+  </xs:complexType>
+  <xs:complexType name="RezultatiPretrageType">
+    <xs:sequence>
+      <xs:element name="delo" type="p:ZavedenoDeloType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="rezultatiPretrage" type="p:RezultatiPretrageType"/>
+</xs:schema>

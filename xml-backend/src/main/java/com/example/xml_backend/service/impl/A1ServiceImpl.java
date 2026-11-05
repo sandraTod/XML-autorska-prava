@@ -17,6 +17,7 @@ import com.example.xml_backend.repository.A1RepositoryException;
 import com.example.xml_backend.service.A1Service;
 import com.example.xml_backend.service.A1XmlService;
 import com.example.xml_backend.service.A1ListaXmlService;
+import com.example.xml_backend.service.A1PretragaXmlService;
 import com.example.xml_backend.service.exception.InvalidA1XmlException;
 import com.example.xml_backend.service.exception.ForbiddenA1FieldsException;
 import jakarta.xml.bind.JAXBException;
@@ -28,12 +29,15 @@ public class A1ServiceImpl implements A1Service {
     private final A1Repository repository;
     private final String documentBaseUrl;
     private final A1ListaXmlService listaXmlService;
+    private final A1PretragaXmlService pretragaXmlService;
 
     public A1ServiceImpl(A1XmlService xmlService, A1Repository repository, A1ListaXmlService listaXmlService,
+            A1PretragaXmlService pretragaXmlService,
             @Value("${a1.document-base-url}") String documentBaseUrl) {
         this.xmlService = xmlService;
         this.repository = repository;
         this.listaXmlService = listaXmlService;
+        this.pretragaXmlService = pretragaXmlService;
         URI base = URI.create(documentBaseUrl);
         if (!("http".equals(base.getScheme()) || "https".equals(base.getScheme()))
                 || base.getHost() == null || base.getUserInfo() != null
@@ -118,6 +122,17 @@ public class A1ServiceImpl implements A1Service {
             return listaXmlService.toXml(list);
         } catch (JAXBException exception) {
             throw new A1RepositoryException("Neispravan XML odgovora baze");
+        }
+    }
+
+    @Override
+    public String searchAccepted(String q) {
+        requireRole("ROLE_GRADJANIN", "ROLE_SLUZBENIK");
+        String result = repository.searchAccepted(q == null ? "" : q);
+        try {
+            return pretragaXmlService.toXml(pretragaXmlService.fromXml(result));
+        } catch (JAXBException exception) {
+            throw new A1RepositoryException("Neispravan XML rezultata pretrage");
         }
     }
 
