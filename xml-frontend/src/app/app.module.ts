@@ -6,6 +6,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { ReactiveFormsModule } from '@angular/forms';
 import { SviZahteviComponent } from './a1/svi-zahtevi/svi-zahtevi.component';
 import { NoviZahtevComponent } from './a1/novi-zahtev/novi-zahtev.component';
+import { PretragaComponent } from './a1/pretraga/pretraga.component';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -19,7 +20,8 @@ import { PregledZahtevaComponent } from './a1/pregled-zahteva/pregled-zahteva.co
     MojiZahteviComponent,
     PregledZahtevaComponent,
     NoviZahtevComponent,
-    SviZahteviComponent
+    SviZahteviComponent,
+    PretragaComponent
   ],
   imports: [
     BrowserModule,

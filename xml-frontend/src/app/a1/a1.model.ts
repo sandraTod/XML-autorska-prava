@@ -4,6 +4,12 @@ export interface A1Pregled {
   vrsta: string;
 }
 
+export interface A1ZavedenoDelo {
+  zahtevId: string;
+  naslov: string;
+  vrsta: string;
+}
+
 export interface A1Adresa {
   ulica: string;
   broj: string;

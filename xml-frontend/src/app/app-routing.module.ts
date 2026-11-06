@@ -6,8 +6,10 @@ import { MojiZahteviComponent } from './a1/moji-zahtevi/moji-zahtevi.component';
 import { PregledZahtevaComponent } from './a1/pregled-zahteva/pregled-zahteva.component';
 import { SviZahteviComponent } from './a1/svi-zahtevi/svi-zahtevi.component';
 import { NoviZahtevComponent } from './a1/novi-zahtev/novi-zahtev.component';
+import { PretragaComponent } from './a1/pretraga/pretraga.component';
 
 const routes: Routes = [
+  { path: 'pretraga', component: PretragaComponent, canActivate: [AuthGuard], data: { roles: ['GRADJANIN', 'SLUZBENIK'] } },
   { path: 'sluzbenik/zahtevi', component: SviZahteviComponent, canActivate: [AuthGuard], data: { roles: ['SLUZBENIK'] } },
   {
     path: 'sluzbenik/zahtevi/:documentId', component: PregledZahtevaComponent, canActivate: [AuthGuard],

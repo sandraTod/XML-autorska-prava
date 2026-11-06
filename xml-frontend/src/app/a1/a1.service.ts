@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import {
-  A1Pregled, A1Zahtev, A1Podnosilac, A1FizickoLice, A1Adresa,
+  A1Pregled, A1Zahtev, A1Podnosilac, A1FizickoLice, A1Adresa, A1ZavedenoDelo,
   A1Autorstvo, A1Prilog, A1Delo, A1Podnosenje, A1Odluka, A1Resenje
 } from './a1.model';
 
@@ -15,6 +15,35 @@ export class A1Service {
   private readonly headers = new HttpHeaders({ Accept: 'application/xml' });
 
   constructor(private http: HttpClient) {}
+
+  searchAccepted(q: string): Observable<A1ZavedenoDelo[]> {
+    return this.http.get('/api/a1/zavedena-dela', {
+      headers: this.headers,
+      params: new HttpParams().set('q', q),
+      responseType: 'text'
+    }).pipe(map(xml => {
+      const namespace = 'https://example.org/autorska-prava/a1-pretraga';
+      const root = this.parseRoot(xml, 'rezultatiPretrage', namespace);
+      return this.children(root, namespace).map(element => {
+        if (element.localName !== 'delo') throw new Error('Neispravan XML odgovor servera.');
+        const zahtevId = element.getAttribute('zahtevId');
+        if (!zahtevId) throw new Error('Neispravan XML odgovor servera.');
+        return {
+          zahtevId,
+          naslov: this.required(element, 'naslov', namespace).textContent || '',
+          vrsta: this.required(element, 'vrsta', namespace).textContent || ''
+        };
+      });
+    }));
+  }
+
+  searchPending(q: string): Observable<A1Pregled[]> {
+    return this.http.get('/api/sluzbenik/a1/zahtevi/pretraga', {
+      headers: this.headers,
+      params: new HttpParams().set('q', q),
+      responseType: 'text'
+    }).pipe(map(xml => this.parseList(xml)));
+  }
 
   findResolution(documentId: string): Observable<A1Resenje> {
     this.checkDocumentId(documentId);

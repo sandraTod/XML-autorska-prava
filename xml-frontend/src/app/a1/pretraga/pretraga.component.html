@@ -1,0 +1,44 @@
+<section class="card request-card" [attr.aria-busy]="loading">
+  <h1>Pretraga</h1>
+  <form [formGroup]="form" (ngSubmit)="search()">
+    <label *ngIf="isOfficial">
+      Pretraži
+      <select formControlName="tip">
+        <option value="prihvacena">Prihvaćena dela</option>
+        <option value="naCekanju">Zahtevi na čekanju</option>
+      </select>
+    </label>
+    <p *ngIf="!isOfficial">Pretraga prihvaćenih dela.</p>
+    <label>
+      Tekst ili fraza
+      <input type="text" formControlName="q" aria-describedby="pretraga-napomena">
+    </label>
+    <p id="pretraga-napomena">Prazan unos vraća sve rezultate izabranog tipa.</p>
+    <button type="submit">Pretraži</button>
+  </form>
+
+  <p *ngIf="loading" role="status">Učitavanje rezultata...</p>
+  <p *ngIf="error" class="error" role="alert">{{ error }}</p>
+
+  <ng-container *ngIf="searched && !loading && !error">
+    <ng-container *ngIf="!showingPending">
+      <h2>Prihvaćena dela</h2>
+      <p *ngIf="prihvacenaDela.length === 0">Nema rezultata pretrage.</p>
+      <article class="request-item" *ngFor="let delo of prihvacenaDela">
+        <h2>{{ delo.naslov }}</h2>
+        <p>Vrsta dela: {{ delo.vrsta }}</p>
+      </article>
+    </ng-container>
+    <ng-container *ngIf="showingPending && isOfficial">
+      <h2>Zahtevi na čekanju</h2>
+      <p *ngIf="zahteviNaCekanju.length === 0">Nema rezultata pretrage.</p>
+      <article class="request-item" *ngFor="let zahtev of zahteviNaCekanju">
+        <h2>{{ zahtev.naslov }}</h2>
+        <p>Vrsta dela: {{ zahtev.vrsta }}</p>
+        <a class="button-link" *ngIf="zahtev.documentId; else noId"
+           [routerLink]="['/sluzbenik/zahtevi', zahtev.documentId]">Pregled zahteva</a>
+        <ng-template #noId><p>Pregled nije dostupan: zahtev nema ispravan identifikator.</p></ng-template>
+      </article>
+    </ng-container>
+  </ng-container>
+</section>
