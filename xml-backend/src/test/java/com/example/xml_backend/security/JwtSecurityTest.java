@@ -116,6 +116,39 @@ class JwtSecurityTest {
         user = userXml.fromXml(resource("korisnik-primer.xml"));
     }
 
+    @Test
+    void xhtmlUsesExistingOwnershipAndXmlErrors() throws Exception {
+        var document = a1Xml.fromXml(example);
+        document.setVlasnikId(user.getId());
+        when(a1Repository.findById("owned")).thenReturn(Optional.of(a1Xml.toXml(document)));
+        when(a1Repository.findById("legacy")).thenReturn(Optional.of(example));
+        document.setVlasnikId("https://example.org/nalozi/other");
+        when(a1Repository.findById("foreign")).thenReturn(Optional.of(a1Xml.toXml(document)));
+        String path = "/api/a1/zahtevi/owned/xhtml";
+        mvc.perform(get(path).accept("application/xhtml+xml"))
+                .andExpect(status().isUnauthorized()).andExpect(xpath("/greska/status").string("401"));
+        mvc.perform(get(path).with(user("other").roles("OTHER")).accept("application/xhtml+xml"))
+                .andExpect(status().isForbidden()).andExpect(xpath("/greska/status").string("403"));
+        mvc.perform(get(path).header("Authorization", bearer(UlogaType.GRADJANIN)).accept("application/xhtml+xml"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/xhtml+xml;charset=UTF-8"))
+                .andExpect(xpath("/h:html", java.util.Map.of("h", "http://www.w3.org/1999/xhtml")).exists());
+        for (String id : new String[]{"foreign", "legacy", "missing"}) {
+            mvc.perform(get("/api/a1/zahtevi/" + id + "/xhtml")
+                    .header("Authorization", bearer(UlogaType.GRADJANIN)).accept("application/xhtml+xml"))
+                    .andExpect(status().isNotFound()).andExpect(xpath("/greska/status").string("404"));
+        }
+        for (String id : new String[]{"owned", "foreign", "legacy"}) {
+            mvc.perform(get("/api/a1/zahtevi/" + id + "/xhtml")
+                    .header("Authorization", bearer(UlogaType.SLUZBENIK)).accept("application/xhtml+xml"))
+                    .andExpect(status().isOk()).andExpect(content().contentTypeCompatibleWith("application/xhtml+xml"));
+        }
+        when(a1Repository.findById("error")).thenThrow(new A1RepositoryException("SECRET"));
+        mvc.perform(get("/api/a1/zahtevi/error/xhtml").header("Authorization", bearer(UlogaType.SLUZBENIK))
+                .accept("application/xhtml+xml"))
+                .andExpect(status().isServiceUnavailable()).andExpect(xpath("/greska/status").string("503"));
+    }
+
     private String resource(String name) throws Exception {
         try (var input = getClass().getResourceAsStream("/" + name)) {
             return new String(input.readAllBytes(), StandardCharsets.UTF_8);

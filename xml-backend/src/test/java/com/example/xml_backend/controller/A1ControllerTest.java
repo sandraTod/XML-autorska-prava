@@ -25,6 +25,7 @@ import com.example.xml_backend.repository.A1Repository;
 import com.example.xml_backend.repository.A1RepositoryException;
 import com.example.xml_backend.service.impl.A1ServiceImpl;
 import com.example.xml_backend.service.impl.A1XmlServiceImpl;
+import com.example.xml_backend.service.impl.A1XhtmlServiceImpl;
 import com.example.xml_backend.service.impl.A1ListaXmlServiceImpl;
 import com.example.xml_backend.service.impl.A1PretragaXmlServiceImpl;
 
@@ -39,7 +40,7 @@ class A1ControllerTest {
         SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
                 "https://example.org/nalozi/test", null, List.of(new SimpleGrantedAuthority("ROLE_GRADJANIN"))));
         var service = new A1ServiceImpl(xmlService, repository, new A1ListaXmlServiceImpl(), new A1PretragaXmlServiceImpl(), "http://localhost:8080/api/a1/zahtevi");
-        mvc = MockMvcBuilders.standaloneSetup(new A1Controller(service))
+        mvc = MockMvcBuilders.standaloneSetup(new A1Controller(service, new A1XhtmlServiceImpl()))
                 .setMessageConverters(new org.springframework.http.converter.StringHttpMessageConverter(StandardCharsets.UTF_8))
                 .setControllerAdvice(new A1ExceptionHandler()).build();
         try (var input = getClass().getResourceAsStream("/a1-zahtev-primer.xml")) {
@@ -105,6 +106,25 @@ class A1ControllerTest {
         mvc.perform(get("/api/a1/zahtevi/missing")).andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_XML))
                 .andExpect(xpath("/greska/status").string("404"));
+    }
+
+    @Test
+    void xhtmlRejectsDtdAndReturnsSanitizedTransformationError() throws Exception {
+        var xhtml = new A1XhtmlServiceImpl();
+        assertThrows(IllegalStateException.class, () -> xhtml.toXhtml(
+                "<!DOCTYPE zahtevA1 [<!ENTITY external SYSTEM 'file:///not-allowed'>]>"
+                        + "<zahtevA1>&external;</zahtevA1>"));
+        var service = mock(com.example.xml_backend.service.A1Service.class);
+        var failingXhtml = mock(com.example.xml_backend.service.A1XhtmlService.class);
+        when(service.findById("test")).thenReturn(Optional.of(example));
+        when(failingXhtml.toXhtml(example)).thenThrow(new IllegalStateException("SECRET parser details"));
+        var failingMvc = MockMvcBuilders.standaloneSetup(new A1Controller(service, failingXhtml))
+                .setControllerAdvice(new A1ExceptionHandler()).build();
+        var response = failingMvc.perform(get("/api/a1/zahtevi/test/xhtml").accept("application/xhtml+xml"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_XML))
+                .andExpect(xpath("/greska/status").string("500")).andReturn().getResponse();
+        assertFalse(response.getContentAsString().contains("SECRET"));
     }
 
     @Test
