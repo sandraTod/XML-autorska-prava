@@ -12,6 +12,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.xpath;
 
 import java.nio.charset.StandardCharsets;
@@ -44,6 +45,7 @@ import com.example.xml_backend.service.JwtTokenService;
 import com.example.xml_backend.service.KorisnikXmlService;
 import com.example.xml_backend.service.ResenjeService;
 import com.example.xml_backend.service.ResenjeXmlService;
+import com.example.xml_backend.service.impl.ResenjeXhtmlServiceImpl;
 
 @SpringBootTest
 class ResenjeControllerTest {
@@ -83,6 +85,47 @@ class ResenjeControllerTest {
         request.setId("http://localhost:8080/api/a1/zahtevi/" + id);
         request.setVlasnikId(owner);
         when(requests.findById(id)).thenReturn(Optional.of(requestXml.toXml(request)));
+    }
+
+    @Test
+    void xhtmlSupportsBothOutcomesAndPreservesAccessAndErrors() throws Exception {
+        var xhtml = new ResenjeXhtmlServiceImpl();
+        assertThrows(IllegalStateException.class, () -> xhtml.toXhtml(
+                "<!DOCTYPE resenje [<!ENTITY e SYSTEM 'file:///secret'>]><resenje>&e;</resenje>"));
+        mvc.perform(get(GET + "one/resenje/xhtml").accept("application/xhtml+xml"))
+                .andExpect(status().isUnauthorized()).andExpect(xpath("/greska/status").string("401"));
+        for (String outcome : new String[]{"odobrenje", "odbijanje"}) {
+            var stored = resolutionXml.fromXml(resource("resenje-" + outcome + "-primer.xml"));
+            stored.setId("http://localhost:8080/api/a1/zahtevi/one/resenje");
+            stored.setZahtevRef("http://localhost:8080/api/a1/zahtevi/one");
+            when(resolutions.findById("one")).thenReturn(Optional.of(resolutionXml.toXml(stored)));
+            for (String token : new String[]{officialToken, citizenToken}) {
+                mvc.perform(get(GET + "one/resenje/xhtml").header("Authorization", "Bearer " + token)
+                        .accept("application/xhtml+xml"))
+                        .andExpect(status().isOk())
+                        .andExpect(content().contentType("application/xhtml+xml;charset=UTF-8"))
+                        .andExpect(xpath("/h:html/h:body/h:h2[last()]",
+                                java.util.Map.of("h", "http://www.w3.org/1999/xhtml"))
+                                .string(outcome.equals("odobrenje") ? "Zahtev je odobren" : "Zahtev je odbijen"));
+            }
+        }
+        request("foreign", "https://example.org/nalozi/other");
+        request("old", null);
+        for (String id : new String[]{"foreign", "old", "missing", "two"}) {
+            mvc.perform(get(GET + id + "/resenje/xhtml").header("Authorization", "Bearer " + citizenToken)
+                    .accept("application/xhtml+xml"))
+                    .andExpect(status().isNotFound()).andExpect(xpath("/greska/status").string("404"));
+        }
+        var legacyResolution = resolutionXml.fromXml(resource("resenje-odobrenje-primer.xml"));
+        legacyResolution.setId("http://localhost:8080/api/a1/zahtevi/old/resenje");
+        legacyResolution.setZahtevRef("http://localhost:8080/api/a1/zahtevi/old");
+        when(resolutions.findById("old")).thenReturn(Optional.of(resolutionXml.toXml(legacyResolution)));
+        mvc.perform(get(GET + "old/resenje/xhtml").header("Authorization", "Bearer " + officialToken))
+                .andExpect(status().isOk());
+        when(resolutions.findById("one")).thenThrow(new A1RepositoryException("SECRET"));
+        mvc.perform(get(GET + "one/resenje/xhtml").header("Authorization", "Bearer " + officialToken)
+                .accept("application/xhtml+xml"))
+                .andExpect(status().isServiceUnavailable()).andExpect(xpath("/greska/status").string("503"));
     }
 
     @Test
