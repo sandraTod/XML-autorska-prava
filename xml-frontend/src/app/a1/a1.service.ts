@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
+import { from, Observable, of, throwError } from 'rxjs';
+import { catchError, map, mergeMap } from 'rxjs/operators';
 
 import {
   A1Pregled, A1Zahtev, A1Podnosilac, A1FizickoLice, A1Adresa, A1ZavedenoDelo,
@@ -15,6 +15,25 @@ export class A1Service {
   private readonly headers = new HttpHeaders({ Accept: 'application/xml' });
 
   constructor(private http: HttpClient) {}
+
+  downloadXhtml(documentId: string): Observable<Blob> {
+    this.checkDocumentId(documentId);
+    return this.http.get('/api/a1/zahtevi/' + documentId + '/xhtml', {
+      headers: this.headers.set('Accept', 'application/xhtml+xml'),
+      responseType: 'blob'
+    }).pipe(catchError(error => {
+      if (!(error instanceof HttpErrorResponse) || !(error.error instanceof Blob)) {
+        return throwError(() => error);
+      }
+      return from(error.error.text()).pipe(
+        catchError(() => of('')),
+        mergeMap(xml => throwError(() => new HttpErrorResponse({
+          error: xml, headers: error.headers, status: error.status,
+          statusText: error.statusText, url: error.url || undefined
+        })))
+      );
+    }));
+  }
 
   searchAccepted(q: string): Observable<A1ZavedenoDelo[]> {
     return this.http.get('/api/a1/zavedena-dela', {

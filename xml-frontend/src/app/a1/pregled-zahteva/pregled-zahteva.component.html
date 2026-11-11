@@ -4,6 +4,10 @@
   <p *ngIf="loading" role="status">Učitavanje zahteva...</p>
   <p *ngIf="error" class="error" role="alert">{{ error }}</p>
   <ng-container *ngIf="zahtev as z">
+    <button *ngIf="z.documentId" type="button" (click)="downloadXhtml()" [disabled]="downloadPending">
+      {{ downloadPending ? 'Preuzimanje...' : 'Preuzmi XHTML' }}
+    </button>
+    <p *ngIf="downloadError" class="error" role="alert">{{ downloadError }}</p>
     <h2>{{ z.delo.naslov }}</h2>
     <p *ngIf="z.id" class="document-id">ID: {{ z.id }}</p>
     <section class="request-section" [attr.aria-busy]="resolutionLoading || decisionPending">

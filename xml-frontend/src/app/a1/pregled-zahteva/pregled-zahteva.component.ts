@@ -13,6 +13,8 @@ import { AuthService } from '../../auth/auth.service';
 export class PregledZahtevaComponent implements OnInit, OnDestroy {
   loading = true;
   error = '';
+  downloadPending = false;
+  downloadError = '';
   listRoute: string = this.route.snapshot.data['listRoute'] || '/moji-zahtevi';
   listTitle: string = this.route.snapshot.data['listTitle'] || 'Moji zahtevi';
   zahtev: A1Zahtev | null = null;
@@ -33,6 +35,9 @@ export class PregledZahtevaComponent implements OnInit, OnDestroy {
   private resolutionSubscription?: Subscription;
   private decisionSubscription?: Subscription;
   private outcomeSubscription?: Subscription;
+  private downloadSubscription?: Subscription;
+  private downloadUrl?: string;
+  private downloadTimer?: number;
 
   constructor(private service: A1Service, private auth: AuthService, private route: ActivatedRoute, private fb: FormBuilder) {}
 
@@ -46,6 +51,10 @@ export class PregledZahtevaComponent implements OnInit, OnDestroy {
       this.requestSubscription?.unsubscribe();
       this.resolutionSubscription?.unsubscribe();
       this.decisionSubscription?.unsubscribe();
+      this.downloadSubscription?.unsubscribe();
+      this.releaseDownloadUrl();
+      this.downloadPending = false;
+      this.downloadError = '';
       this.resenje = null;
       this.resolutionMissing = false;
       this.resolutionLoading = false;
@@ -111,7 +120,38 @@ export class PregledZahtevaComponent implements OnInit, OnDestroy {
       });
   }
 
+  downloadXhtml(): void {
+    if (!this.zahtev?.documentId || this.downloadPending) return;
+    const documentId = this.zahtev.documentId;
+    this.downloadError = '';
+    this.downloadPending = true;
+    this.downloadSubscription = this.service.downloadXhtml(documentId)
+      .pipe(finalize(() => this.downloadPending = false)).subscribe({
+        next: blob => {
+          this.releaseDownloadUrl();
+          this.downloadUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = this.downloadUrl;
+          link.download = 'zahtev-' + documentId + '.xhtml';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          this.downloadTimer = window.setTimeout(() => this.releaseDownloadUrl(), 0);
+        },
+        error: error => this.downloadError = this.auth.errorMessage(error)
+      });
+  }
+
+  private releaseDownloadUrl(): void {
+    if (this.downloadTimer !== undefined) window.clearTimeout(this.downloadTimer);
+    if (this.downloadUrl) URL.revokeObjectURL(this.downloadUrl);
+    this.downloadTimer = undefined;
+    this.downloadUrl = undefined;
+  }
+
   ngOnDestroy(): void {
+    this.downloadSubscription?.unsubscribe();
+    this.releaseDownloadUrl();
     this.routeSubscription?.unsubscribe();
     this.requestSubscription?.unsubscribe();
     this.resolutionSubscription?.unsubscribe();

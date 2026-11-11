@@ -57,6 +57,44 @@ describe('Official decisions and resolutions', () => {
     return component;
   }
 
+  it('downloads XHTML as a file and releases its Blob URL', () => {
+    const component = missing();
+    const createUrl = spyOn(URL, 'createObjectURL').and.returnValue('blob:test');
+    const revokeUrl = spyOn(URL, 'revokeObjectURL');
+    const click = spyOn(HTMLAnchorElement.prototype, 'click');
+    component.downloadXhtml();
+    expect(component.downloadPending).toBeTrue();
+    component.downloadXhtml();
+    const request = http.expectOne(requestUrl + '/xhtml');
+    expect(request.request.responseType).toBe('blob');
+    expect(request.request.headers.get('Accept')).toBe('application/xhtml+xml');
+    const blob = new Blob(['<html xmlns="http://www.w3.org/1999/xhtml"/>'], { type: 'application/xhtml+xml' });
+    request.flush(blob);
+    expect(createUrl).toHaveBeenCalledWith(blob);
+    expect(click).toHaveBeenCalled();
+    const link = click.calls.mostRecent().object as HTMLAnchorElement;
+    expect(link.download).toBe('zahtev-one.xhtml');
+    expect(component.downloadPending).toBeFalse();
+    fixture!.destroy();
+    fixture = undefined;
+    expect(revokeUrl).toHaveBeenCalledWith('blob:test');
+  });
+
+  it('reads an XML error from a Blob without removing the loaded request', async () => {
+    const component = missing();
+    component.downloadXhtml();
+    const errorBlob = new Blob([
+      '<greska><status>503</status><poruka>Baza nije dostupna.</poruka></greska>'
+    ], { type: 'application/xml' });
+    const readText = spyOn(errorBlob, 'text').and.callThrough();
+    http.expectOne(requestUrl + '/xhtml').flush(errorBlob, { status: 503, statusText: 'Service Unavailable' });
+    await readText.calls.mostRecent().returnValue;
+    await fixture!.whenStable();
+    expect(component.downloadError).toBe('Baza nije dostupna.');
+    expect(component.downloadPending).toBeFalse();
+    expect(component.zahtev?.delo.naslov).toBe('Naslov');
+  });
+
   it('generates only the decision branch in the correct XML namespace, escaping rejection text', () => {
     const decisionNamespace = 'https://example.org/autorska-prava/odluka';
     const approved = new DOMParser().parseFromString(
