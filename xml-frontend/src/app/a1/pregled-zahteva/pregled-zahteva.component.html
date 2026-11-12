@@ -19,6 +19,10 @@
         Rešenje još nije doneto.
       </p>
       <div *ngIf="resenje as r">
+        <button *ngIf="z.documentId" type="button" (click)="downloadResolutionXhtml()" [disabled]="resolutionDownloadPending">
+          {{ resolutionDownloadPending ? 'Preuzimanje...' : 'Preuzmi rešenje — XHTML' }}
+        </button>
+        <p *ngIf="resolutionDownloadError" class="error" role="alert">{{ resolutionDownloadError }}</p>
         <dl>
           <div><dt>Datum odluke</dt><dd>{{ r.datumOdluke }}</dd></div>
           <div><dt>Ime službenika</dt><dd>{{ r.sluzbenik.ime }}</dd></div>

@@ -15,6 +15,8 @@ export class PregledZahtevaComponent implements OnInit, OnDestroy {
   error = '';
   downloadPending = false;
   downloadError = '';
+  resolutionDownloadPending = false;
+  resolutionDownloadError = '';
   listRoute: string = this.route.snapshot.data['listRoute'] || '/moji-zahtevi';
   listTitle: string = this.route.snapshot.data['listTitle'] || 'Moji zahtevi';
   zahtev: A1Zahtev | null = null;
@@ -38,6 +40,9 @@ export class PregledZahtevaComponent implements OnInit, OnDestroy {
   private downloadSubscription?: Subscription;
   private downloadUrl?: string;
   private downloadTimer?: number;
+  private resolutionDownloadSubscription?: Subscription;
+  private resolutionDownloadUrl?: string;
+  private resolutionDownloadTimer?: number;
 
   constructor(private service: A1Service, private auth: AuthService, private route: ActivatedRoute, private fb: FormBuilder) {}
 
@@ -52,6 +57,10 @@ export class PregledZahtevaComponent implements OnInit, OnDestroy {
       this.resolutionSubscription?.unsubscribe();
       this.decisionSubscription?.unsubscribe();
       this.downloadSubscription?.unsubscribe();
+      this.resolutionDownloadSubscription?.unsubscribe();
+      this.releaseResolutionDownloadUrl();
+      this.resolutionDownloadPending = false;
+      this.resolutionDownloadError = '';
       this.releaseDownloadUrl();
       this.downloadPending = false;
       this.downloadError = '';
@@ -149,7 +158,38 @@ export class PregledZahtevaComponent implements OnInit, OnDestroy {
     this.downloadUrl = undefined;
   }
 
+  downloadResolutionXhtml(): void {
+    if (!this.resenje || !this.zahtev?.documentId || this.resolutionDownloadPending) return;
+    const documentId = this.zahtev.documentId;
+    this.resolutionDownloadError = '';
+    this.resolutionDownloadPending = true;
+    this.resolutionDownloadSubscription = this.service.downloadResolutionXhtml(documentId)
+      .pipe(finalize(() => this.resolutionDownloadPending = false)).subscribe({
+        next: blob => {
+          this.releaseResolutionDownloadUrl();
+          this.resolutionDownloadUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = this.resolutionDownloadUrl;
+          link.download = 'resenje-' + documentId + '.xhtml';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          this.resolutionDownloadTimer = window.setTimeout(() => this.releaseResolutionDownloadUrl(), 0);
+        },
+        error: error => this.resolutionDownloadError = this.auth.errorMessage(error)
+      });
+  }
+
+  private releaseResolutionDownloadUrl(): void {
+    if (this.resolutionDownloadTimer !== undefined) window.clearTimeout(this.resolutionDownloadTimer);
+    if (this.resolutionDownloadUrl) URL.revokeObjectURL(this.resolutionDownloadUrl);
+    this.resolutionDownloadTimer = undefined;
+    this.resolutionDownloadUrl = undefined;
+  }
+
   ngOnDestroy(): void {
+    this.resolutionDownloadSubscription?.unsubscribe();
+    this.releaseResolutionDownloadUrl();
     this.downloadSubscription?.unsubscribe();
     this.releaseDownloadUrl();
     this.routeSubscription?.unsubscribe();
