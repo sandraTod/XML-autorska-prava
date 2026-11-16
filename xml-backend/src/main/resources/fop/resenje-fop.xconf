@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fop version="1.0">
+  <strict-configuration>true</strict-configuration>
+  <use-cache>false</use-cache>
+  <renderers>
+    <renderer mime="application/pdf">
+      <fonts>
+        <font embed-url="classpath:/fonts/DejaVuSans.ttf" embedding-mode="subset">
+          <font-triplet name="ResenjeFont" style="normal" weight="normal"/>
+        </font>
+      </fonts>
+    </renderer>
+  </renderers>
+</fop>

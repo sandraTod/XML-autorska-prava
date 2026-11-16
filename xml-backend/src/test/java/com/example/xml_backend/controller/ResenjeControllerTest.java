@@ -2,6 +2,7 @@ package com.example.xml_backend.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -13,6 +14,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.xpath;
 
 import java.nio.charset.StandardCharsets;
@@ -85,6 +87,42 @@ class ResenjeControllerTest {
         request.setId("http://localhost:8080/api/a1/zahtevi/" + id);
         request.setVlasnikId(owner);
         when(requests.findById(id)).thenReturn(Optional.of(requestXml.toXml(request)));
+    }
+
+    @Test
+    void pdfReturnsDownloadAndPreservesAccessAndXmlErrors() throws Exception {
+        String path = GET + "one/resenje/pdf";
+        mvc.perform(get(path).accept(MediaType.APPLICATION_PDF))
+                .andExpect(status().isUnauthorized()).andExpect(xpath("/greska/status").string("401"));
+        mvc.perform(get(path).accept(MediaType.APPLICATION_PDF)
+                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+                        .user("other").roles("OTHER")))
+                .andExpect(status().isForbidden()).andExpect(xpath("/greska/status").string("403"));
+        for (String outcome : new String[]{"odobrenje", "odbijanje"}) {
+            var stored = resolutionXml.fromXml(resource("resenje-" + outcome + "-primer.xml"));
+            stored.setId("http://localhost:8080/api/a1/zahtevi/one/resenje");
+            stored.setZahtevRef("http://localhost:8080/api/a1/zahtevi/one");
+            when(resolutions.findById("one")).thenReturn(Optional.of(resolutionXml.toXml(stored)));
+            for (String token : new String[]{officialToken, citizenToken}) {
+                byte[] pdf = mvc.perform(get(path).header("Authorization", "Bearer " + token)
+                        .accept(MediaType.APPLICATION_PDF))
+                        .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_PDF))
+                        .andExpect(header().string("Content-Disposition", "attachment; filename=\"resenje-one.pdf\""))
+                        .andReturn().getResponse().getContentAsByteArray();
+                assertTrue(new String(pdf, StandardCharsets.ISO_8859_1).startsWith("%PDF-"));
+            }
+        }
+        request("foreign", "https://example.org/nalozi/other");
+        request("old", null);
+        for (String id : new String[]{"foreign", "old", "missing", "two"}) {
+            mvc.perform(get(GET + id + "/resenje/pdf").header("Authorization", "Bearer " + citizenToken)
+                    .accept(MediaType.APPLICATION_PDF))
+                    .andExpect(status().isNotFound()).andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_XML))
+                    .andExpect(xpath("/greska/status").string("404"));
+        }
+        when(resolutions.findById("one")).thenThrow(new A1RepositoryException("SECRET"));
+        mvc.perform(get(path).header("Authorization", "Bearer " + officialToken).accept(MediaType.APPLICATION_PDF))
+                .andExpect(status().isServiceUnavailable()).andExpect(xpath("/greska/status").string("503"));
     }
 
     @Test
