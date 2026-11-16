@@ -1,5 +1,7 @@
 package com.example.xml_backend.controller;
 
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.xml_backend.service.A1Service;
+import com.example.xml_backend.service.A1PdfService;
 import com.example.xml_backend.service.A1XhtmlService;
 
 @RestController
@@ -20,10 +23,12 @@ public class A1Controller {
     
     private final A1Service service;
     private final A1XhtmlService xhtmlService;
+    private final A1PdfService pdfService;
 
-    public A1Controller(A1Service service, A1XhtmlService xhtmlService) {
+    public A1Controller(A1Service service, A1XhtmlService xhtmlService, A1PdfService pdfService) {
         this.service = service;
         this.xhtmlService = xhtmlService;
+        this.pdfService = pdfService;
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_XML_VALUE)
@@ -47,6 +52,18 @@ public class A1Controller {
                         .contentType(MediaType.parseMediaType("application/xhtml+xml;charset=UTF-8"))
                         .body(xhtmlService.toXhtml(xml)))
                 .orElseGet(() -> A1ExceptionHandler.error(404, "Zahtev nije pronađen."));
+    }
+
+    @GetMapping(value = "/{documentId}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<?> findPdf(@PathVariable String documentId) {
+        var stored = service.findById(documentId);
+        if (stored.isEmpty()) {
+            return A1ExceptionHandler.error(404, "Zahtev nije pronađen.");
+        }
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                        .filename("zahtev-" + documentId + ".pdf").build().toString())
+                .body(pdfService.toPdf(stored.get()));
     }
 
     @GetMapping("/listaZahteva")

@@ -155,6 +155,42 @@ class JwtSecurityTest {
         }
     }
 
+    @Test
+    void pdfUsesExistingOwnershipAndXmlErrors() throws Exception {
+        var document = a1Xml.fromXml(example);
+        document.setVlasnikId(user.getId());
+        when(a1Repository.findById("owned")).thenReturn(Optional.of(a1Xml.toXml(document)));
+        when(a1Repository.findById("legacy")).thenReturn(Optional.of(example));
+        document.setVlasnikId("https://example.org/nalozi/other");
+        when(a1Repository.findById("foreign")).thenReturn(Optional.of(a1Xml.toXml(document)));
+        String path = "/api/a1/zahtevi/owned/pdf";
+        mvc.perform(get(path).accept(MediaType.APPLICATION_PDF))
+                .andExpect(status().isUnauthorized()).andExpect(xpath("/greska/status").string("401"));
+        mvc.perform(get(path).with(user("other").roles("OTHER")).accept(MediaType.APPLICATION_PDF))
+                .andExpect(status().isForbidden()).andExpect(xpath("/greska/status").string("403"));
+        byte[] pdf = mvc.perform(get(path).header("Authorization", bearer(UlogaType.GRADJANIN))
+                .accept(MediaType.APPLICATION_PDF)).andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_PDF))
+                .andExpect(header().string("Content-Disposition", "attachment; filename=\"zahtev-owned.pdf\""))
+                .andReturn().getResponse().getContentAsByteArray();
+        assertTrue(new String(pdf, StandardCharsets.ISO_8859_1).startsWith("%PDF-"));
+        for (String id : new String[]{"foreign", "legacy", "missing"}) {
+            mvc.perform(get("/api/a1/zahtevi/" + id + "/pdf")
+                    .header("Authorization", bearer(UlogaType.GRADJANIN)).accept(MediaType.APPLICATION_PDF))
+                    .andExpect(status().isNotFound()).andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_XML))
+                    .andExpect(xpath("/greska/status").string("404"));
+        }
+        for (String id : new String[]{"owned", "foreign", "legacy"}) {
+            mvc.perform(get("/api/a1/zahtevi/" + id + "/pdf")
+                    .header("Authorization", bearer(UlogaType.SLUZBENIK)).accept(MediaType.APPLICATION_PDF))
+                    .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_PDF));
+        }
+        when(a1Repository.findById("error")).thenThrow(new A1RepositoryException("SECRET"));
+        mvc.perform(get("/api/a1/zahtevi/error/pdf").header("Authorization", bearer(UlogaType.SLUZBENIK))
+                .accept(MediaType.APPLICATION_PDF))
+                .andExpect(status().isServiceUnavailable()).andExpect(xpath("/greska/status").string("503"));
+    }
+
     private String bearer(UlogaType role) {
         user.setUloga(role);
         return "Bearer " + tokens.issue(user).token();

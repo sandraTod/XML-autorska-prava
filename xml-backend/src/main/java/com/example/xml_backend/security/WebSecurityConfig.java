@@ -37,6 +37,7 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/a1/zahtevi/{documentId}/resenje/xhtml").hasAnyRole("GRADJANIN", "SLUZBENIK")
                         .requestMatchers(HttpMethod.GET, "/api/a1/zahtevi/{documentId}/resenje/pdf").hasAnyRole("GRADJANIN", "SLUZBENIK")
                         .requestMatchers(HttpMethod.GET, "/api/a1/zahtevi/{documentId}/xhtml").hasAnyRole("GRADJANIN", "SLUZBENIK")
+                        .requestMatchers(HttpMethod.GET, "/api/a1/zahtevi/{documentId}/pdf").hasAnyRole("GRADJANIN", "SLUZBENIK")
                         .requestMatchers(HttpMethod.GET, "/api/sluzbenik/a1/zahtevi").hasRole("SLUZBENIK")
                         .requestMatchers(HttpMethod.GET, "/api/sluzbenik/a1/zahtevi/pretraga").hasRole("SLUZBENIK")
                         .requestMatchers(HttpMethod.POST, "/api/a1/zahtevi").hasRole("GRADJANIN")
