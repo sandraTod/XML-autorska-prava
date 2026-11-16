@@ -22,7 +22,11 @@
         <button *ngIf="z.documentId" type="button" (click)="downloadResolutionXhtml()" [disabled]="resolutionDownloadPending">
           {{ resolutionDownloadPending ? 'Preuzimanje...' : 'Preuzmi rešenje — XHTML' }}
         </button>
+        <button *ngIf="z.documentId" type="button" (click)="downloadResolutionPdf()" [disabled]="resolutionPdfDownloadPending">
+          {{ resolutionPdfDownloadPending ? 'Preuzimanje...' : 'Preuzmi rešenje — PDF' }}
+        </button>
         <p *ngIf="resolutionDownloadError" class="error" role="alert">{{ resolutionDownloadError }}</p>
+        <p *ngIf="resolutionPdfDownloadError" class="error" role="alert">{{ resolutionPdfDownloadError }}</p>
         <dl>
           <div><dt>Datum odluke</dt><dd>{{ r.datumOdluke }}</dd></div>
           <div><dt>Ime službenika</dt><dd>{{ r.sluzbenik.ime }}</dd></div>

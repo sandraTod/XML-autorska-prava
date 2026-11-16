@@ -17,6 +17,8 @@ export class PregledZahtevaComponent implements OnInit, OnDestroy {
   downloadError = '';
   resolutionDownloadPending = false;
   resolutionDownloadError = '';
+  resolutionPdfDownloadPending = false;
+  resolutionPdfDownloadError = '';
   listRoute: string = this.route.snapshot.data['listRoute'] || '/moji-zahtevi';
   listTitle: string = this.route.snapshot.data['listTitle'] || 'Moji zahtevi';
   zahtev: A1Zahtev | null = null;
@@ -43,6 +45,9 @@ export class PregledZahtevaComponent implements OnInit, OnDestroy {
   private resolutionDownloadSubscription?: Subscription;
   private resolutionDownloadUrl?: string;
   private resolutionDownloadTimer?: number;
+  private resolutionPdfDownloadSubscription?: Subscription;
+  private resolutionPdfDownloadUrl?: string;
+  private resolutionPdfDownloadTimer?: number;
 
   constructor(private service: A1Service, private auth: AuthService, private route: ActivatedRoute, private fb: FormBuilder) {}
 
@@ -58,6 +63,10 @@ export class PregledZahtevaComponent implements OnInit, OnDestroy {
       this.decisionSubscription?.unsubscribe();
       this.downloadSubscription?.unsubscribe();
       this.resolutionDownloadSubscription?.unsubscribe();
+      this.resolutionPdfDownloadSubscription?.unsubscribe();
+      this.releaseResolutionPdfDownloadUrl();
+      this.resolutionPdfDownloadPending = false;
+      this.resolutionPdfDownloadError = '';
       this.releaseResolutionDownloadUrl();
       this.resolutionDownloadPending = false;
       this.resolutionDownloadError = '';
@@ -187,7 +196,38 @@ export class PregledZahtevaComponent implements OnInit, OnDestroy {
     this.resolutionDownloadUrl = undefined;
   }
 
+  downloadResolutionPdf(): void {
+    if (!this.resenje || !this.zahtev?.documentId || this.resolutionPdfDownloadPending) return;
+    const documentId = this.zahtev.documentId;
+    this.resolutionPdfDownloadError = '';
+    this.resolutionPdfDownloadPending = true;
+    this.resolutionPdfDownloadSubscription = this.service.downloadResolutionPdf(documentId)
+      .pipe(finalize(() => this.resolutionPdfDownloadPending = false)).subscribe({
+        next: blob => {
+          this.releaseResolutionPdfDownloadUrl();
+          this.resolutionPdfDownloadUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = this.resolutionPdfDownloadUrl;
+          link.download = 'resenje-' + documentId + '.pdf';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          this.resolutionPdfDownloadTimer = window.setTimeout(() => this.releaseResolutionPdfDownloadUrl(), 0);
+        },
+        error: error => this.resolutionPdfDownloadError = this.auth.errorMessage(error)
+      });
+  }
+
+  private releaseResolutionPdfDownloadUrl(): void {
+    if (this.resolutionPdfDownloadTimer !== undefined) window.clearTimeout(this.resolutionPdfDownloadTimer);
+    if (this.resolutionPdfDownloadUrl) URL.revokeObjectURL(this.resolutionPdfDownloadUrl);
+    this.resolutionPdfDownloadTimer = undefined;
+    this.resolutionPdfDownloadUrl = undefined;
+  }
+
   ngOnDestroy(): void {
+    this.resolutionPdfDownloadSubscription?.unsubscribe();
+    this.releaseResolutionPdfDownloadUrl();
     this.resolutionDownloadSubscription?.unsubscribe();
     this.releaseResolutionDownloadUrl();
     this.downloadSubscription?.unsubscribe();

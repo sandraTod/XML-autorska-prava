@@ -54,6 +54,25 @@ export class A1Service {
     }));
   }
 
+  downloadResolutionPdf(documentId: string): Observable<Blob> {
+    this.checkDocumentId(documentId);
+    return this.http.get('/api/a1/zahtevi/' + documentId + '/resenje/pdf', {
+      headers: this.headers.set('Accept', 'application/pdf'),
+      responseType: 'blob'
+    }).pipe(catchError(error => {
+      if (!(error instanceof HttpErrorResponse) || !(error.error instanceof Blob)) {
+        return throwError(() => error);
+      }
+      return from(error.error.text()).pipe(
+        catchError(() => of('')),
+        mergeMap(xml => throwError(() => new HttpErrorResponse({
+          error: xml, headers: error.headers, status: error.status,
+          statusText: error.statusText, url: error.url || undefined
+        })))
+      );
+    }));
+  }
+
   searchAccepted(q: string): Observable<A1ZavedenoDelo[]> {
     return this.http.get('/api/a1/zavedena-dela', {
       headers: this.headers,
