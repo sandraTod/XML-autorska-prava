@@ -3,12 +3,16 @@ package com.example.xml_backend.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -21,17 +25,22 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.List;
+import java.util.Properties;
+import org.mockito.ArgumentCaptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mail.MailSendException;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -47,9 +56,13 @@ import com.example.xml_backend.service.JwtTokenService;
 import com.example.xml_backend.service.KorisnikXmlService;
 import com.example.xml_backend.service.ResenjeService;
 import com.example.xml_backend.service.ResenjeXmlService;
+import com.example.xml_backend.service.ResenjePdfService;
 import com.example.xml_backend.service.impl.ResenjeXhtmlServiceImpl;
+import jakarta.mail.Multipart;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
 
-@SpringBootTest
+@SpringBootTest(properties = "app.mail.from=no-reply@example.org")
 class ResenjeControllerTest {
     @Autowired private WebApplicationContext context;
     @Autowired private A1XmlService requestXml;
@@ -60,6 +73,8 @@ class ResenjeControllerTest {
     @MockitoBean private A1Repository requests;
     @MockitoBean private KorisnikRepository users;
     @MockitoBean private ResenjeRepository resolutions;
+    @MockitoBean private JavaMailSender mailSender;
+    @MockitoSpyBean private ResenjePdfService pdfService;
     private MockMvc mvc;
     private KorisnikType official;
     private String officialToken;
@@ -77,6 +92,8 @@ class ResenjeControllerTest {
         citizen.setId(OWNER);
         citizen.setUloga(UlogaType.GRADJANIN);
         citizenToken = tokens.issue(citizen).token();
+        when(users.findById(OWNER)).thenReturn(Optional.of(userXml.toXml(citizen)));
+        when(mailSender.createMimeMessage()).thenAnswer(invocation -> new MimeMessage(Session.getInstance(new Properties())));
         when(users.findById(official.getId())).thenReturn(Optional.of(userXml.toXml(official)));
         request("one", OWNER);
         request("two", OWNER);
@@ -87,6 +104,77 @@ class ResenjeControllerTest {
         request.setId("http://localhost:8080/api/a1/zahtevi/" + id);
         request.setVlasnikId(owner);
         when(requests.findById(id)).thenReturn(Optional.of(requestXml.toXml(request)));
+    }
+
+    @Test
+    void sendsBothDecisionsAfterSaveToAccountEmailWithPdfAttachment() throws Exception {
+        byte[] pdf = "%PDF-development-attachment".getBytes(StandardCharsets.UTF_8);
+        doReturn(pdf).when(pdfService).toPdf(anyString());
+        String[] ids = {"one", "two"};
+        String[] outcomes = {"odobrenje", "odbijanje"};
+        for (int i = 0; i < ids.length; i++) {
+            String saved = mvc.perform(post(POST + ids[i] + "/resenje").header("Authorization", "Bearer " + officialToken)
+                    .contentType(MediaType.APPLICATION_XML).content(resource("odluka-" + outcomes[i] + "-primer.xml")))
+                    .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+            verify(pdfService).toPdf(saved);
+            when(resolutions.findById(ids[i])).thenReturn(Optional.of(saved));
+        }
+        var sent = ArgumentCaptor.forClass(MimeMessage.class);
+        var order = inOrder(resolutions, mailSender);
+        for (String id : ids) {
+            order.verify(resolutions).saveIfAbsent(eq(id), anyString());
+            order.verify(mailSender).send(sent.capture());
+        }
+        for (int i = 0; i < ids.length; i++) {
+            MimeMessage message = sent.getAllValues().get(i);
+            message.saveChanges();
+            assertEquals("mila.primer@example.org", message.getAllRecipients()[0].toString());
+            assertEquals("no-reply@example.org", message.getFrom()[0].toString());
+            assertEquals("Doneto je rešenje o A-1 zahtevu", message.getSubject());
+            Multipart body = (Multipart) message.getContent();
+            Multipart text = (Multipart) body.getBodyPart(0).getContent();
+            assertTrue(text.getBodyPart(0).getContent().toString().contains("u prilogu se nalazi rešenje"));
+            var attachment = body.getBodyPart(1);
+            assertEquals("resenje-" + ids[i] + ".pdf", attachment.getFileName());
+            assertTrue(attachment.isMimeType("application/pdf"));
+            assertArrayEquals(pdf, attachment.getInputStream().readAllBytes());
+        }
+        mvc.perform(get(GET + "one/resenje/pdf").header("Authorization", "Bearer " + citizenToken))
+                .andExpect(status().isOk());
+        doThrow(new ResenjeAlreadyExistsException()).when(resolutions).saveIfAbsent(eq("one"), anyString());
+        mvc.perform(post(POST + "one/resenje").header("Authorization", "Bearer " + officialToken)
+                .contentType(MediaType.APPLICATION_XML).content(resource("odluka-odobrenje-primer.xml")))
+                .andExpect(status().isConflict());
+        verify(mailSender, org.mockito.Mockito.times(2)).send(org.mockito.ArgumentMatchers.any(MimeMessage.class));
+    }
+
+    @Test
+    void mailAndPdfFailuresDoNotUndoSavedResolution() throws Exception {
+        doThrow(new MailSendException("TEST SMTP failure")).when(mailSender)
+                .send(org.mockito.ArgumentMatchers.any(MimeMessage.class));
+        mvc.perform(post(POST + "one/resenje").header("Authorization", "Bearer " + officialToken)
+                .contentType(MediaType.APPLICATION_XML).content(resource("odluka-odobrenje-primer.xml")))
+                .andExpect(status().isCreated());
+        verify(resolutions).saveIfAbsent(eq("one"), anyString());
+        doThrow(new IllegalStateException("TEST PDF failure")).when(pdfService).toPdf(anyString());
+        mvc.perform(post(POST + "two/resenje").header("Authorization", "Bearer " + officialToken)
+                .contentType(MediaType.APPLICATION_XML).content(resource("odluka-odbijanje-primer.xml")))
+                .andExpect(status().isCreated());
+        verify(resolutions).saveIfAbsent(eq("two"), anyString());
+        verify(mailSender).send(org.mockito.ArgumentMatchers.any(MimeMessage.class));
+    }
+
+    @Test
+    void ownerlessAndMissingOwnerAccountsSkipMail() throws Exception {
+        request("old", null);
+        mvc.perform(post(POST + "old/resenje").header("Authorization", "Bearer " + officialToken)
+                .contentType(MediaType.APPLICATION_XML).content(resource("odluka-odobrenje-primer.xml")))
+                .andExpect(status().isCreated());
+        when(users.findById(OWNER)).thenReturn(Optional.empty());
+        mvc.perform(post(POST + "one/resenje").header("Authorization", "Bearer " + officialToken)
+                .contentType(MediaType.APPLICATION_XML).content(resource("odluka-odbijanje-primer.xml")))
+                .andExpect(status().isCreated());
+        verifyNoInteractions(mailSender, pdfService);
     }
 
     @Test
