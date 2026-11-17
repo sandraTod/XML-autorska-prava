@@ -4,10 +4,16 @@
   <p *ngIf="loading" role="status">Učitavanje zahteva...</p>
   <p *ngIf="error" class="error" role="alert">{{ error }}</p>
   <ng-container *ngIf="zahtev as z">
-    <button *ngIf="z.documentId" type="button" (click)="downloadXhtml()" [disabled]="downloadPending">
-      {{ downloadPending ? 'Preuzimanje...' : 'Preuzmi XHTML' }}
-    </button>
+    <div *ngIf="z.documentId" class="download-buttons">
+      <button type="button" (click)="downloadXhtml()" [disabled]="downloadPending">
+        {{ downloadPending ? 'Preuzimanje...' : 'Preuzmi XHTML' }}
+      </button>
+      <button type="button" (click)="downloadPdf()" [disabled]="pdfDownloadPending">
+        {{ pdfDownloadPending ? 'Preuzimanje...' : 'Preuzmi zahtev — PDF' }}
+      </button>
+    </div>
     <p *ngIf="downloadError" class="error" role="alert">{{ downloadError }}</p>
+    <p *ngIf="pdfDownloadError" class="error" role="alert">{{ pdfDownloadError }}</p>
     <h2>{{ z.delo.naslov }}</h2>
     <p *ngIf="z.id" class="document-id">ID: {{ z.id }}</p>
     <section class="request-section" [attr.aria-busy]="resolutionLoading || decisionPending">
@@ -19,12 +25,14 @@
         Rešenje još nije doneto.
       </p>
       <div *ngIf="resenje as r">
-        <button *ngIf="z.documentId" type="button" (click)="downloadResolutionXhtml()" [disabled]="resolutionDownloadPending">
-          {{ resolutionDownloadPending ? 'Preuzimanje...' : 'Preuzmi rešenje — XHTML' }}
-        </button>
-        <button *ngIf="z.documentId" type="button" (click)="downloadResolutionPdf()" [disabled]="resolutionPdfDownloadPending">
-          {{ resolutionPdfDownloadPending ? 'Preuzimanje...' : 'Preuzmi rešenje — PDF' }}
-        </button>
+        <div *ngIf="z.documentId" class="download-buttons">
+          <button type="button" (click)="downloadResolutionXhtml()" [disabled]="resolutionDownloadPending">
+            {{ resolutionDownloadPending ? 'Preuzimanje...' : 'Preuzmi rešenje — XHTML' }}
+          </button>
+          <button type="button" (click)="downloadResolutionPdf()" [disabled]="resolutionPdfDownloadPending">
+            {{ resolutionPdfDownloadPending ? 'Preuzimanje...' : 'Preuzmi rešenje — PDF' }}
+          </button>
+        </div>
         <p *ngIf="resolutionDownloadError" class="error" role="alert">{{ resolutionDownloadError }}</p>
         <p *ngIf="resolutionPdfDownloadError" class="error" role="alert">{{ resolutionPdfDownloadError }}</p>
         <dl>

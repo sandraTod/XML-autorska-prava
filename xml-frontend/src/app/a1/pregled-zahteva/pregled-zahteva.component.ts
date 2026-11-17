@@ -15,6 +15,8 @@ export class PregledZahtevaComponent implements OnInit, OnDestroy {
   error = '';
   downloadPending = false;
   downloadError = '';
+  pdfDownloadPending = false;
+  pdfDownloadError = '';
   resolutionDownloadPending = false;
   resolutionDownloadError = '';
   resolutionPdfDownloadPending = false;
@@ -42,6 +44,9 @@ export class PregledZahtevaComponent implements OnInit, OnDestroy {
   private downloadSubscription?: Subscription;
   private downloadUrl?: string;
   private downloadTimer?: number;
+  private pdfDownloadSubscription?: Subscription;
+  private pdfDownloadUrl?: string;
+  private pdfDownloadTimer?: number;
   private resolutionDownloadSubscription?: Subscription;
   private resolutionDownloadUrl?: string;
   private resolutionDownloadTimer?: number;
@@ -62,6 +67,10 @@ export class PregledZahtevaComponent implements OnInit, OnDestroy {
       this.resolutionSubscription?.unsubscribe();
       this.decisionSubscription?.unsubscribe();
       this.downloadSubscription?.unsubscribe();
+      this.pdfDownloadSubscription?.unsubscribe();
+      this.releasePdfDownloadUrl();
+      this.pdfDownloadPending = false;
+      this.pdfDownloadError = '';
       this.resolutionDownloadSubscription?.unsubscribe();
       this.resolutionPdfDownloadSubscription?.unsubscribe();
       this.releaseResolutionPdfDownloadUrl();
@@ -225,7 +234,38 @@ export class PregledZahtevaComponent implements OnInit, OnDestroy {
     this.resolutionPdfDownloadUrl = undefined;
   }
 
+  downloadPdf(): void {
+    if (!this.zahtev?.documentId || this.pdfDownloadPending) return;
+    const documentId = this.zahtev.documentId;
+    this.pdfDownloadError = '';
+    this.pdfDownloadPending = true;
+    this.pdfDownloadSubscription = this.service.downloadPdf(documentId)
+      .pipe(finalize(() => this.pdfDownloadPending = false)).subscribe({
+        next: blob => {
+          this.releasePdfDownloadUrl();
+          this.pdfDownloadUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = this.pdfDownloadUrl;
+          link.download = 'zahtev-' + documentId + '.pdf';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          this.pdfDownloadTimer = window.setTimeout(() => this.releasePdfDownloadUrl(), 0);
+        },
+        error: error => this.pdfDownloadError = this.auth.errorMessage(error)
+      });
+  }
+
+  private releasePdfDownloadUrl(): void {
+    if (this.pdfDownloadTimer !== undefined) window.clearTimeout(this.pdfDownloadTimer);
+    if (this.pdfDownloadUrl) URL.revokeObjectURL(this.pdfDownloadUrl);
+    this.pdfDownloadTimer = undefined;
+    this.pdfDownloadUrl = undefined;
+  }
+
   ngOnDestroy(): void {
+    this.pdfDownloadSubscription?.unsubscribe();
+    this.releasePdfDownloadUrl();
     this.resolutionPdfDownloadSubscription?.unsubscribe();
     this.releaseResolutionPdfDownloadUrl();
     this.resolutionDownloadSubscription?.unsubscribe();

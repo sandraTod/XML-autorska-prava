@@ -136,6 +136,7 @@ small {
 }
 
 .request-card { max-width: 850px; }
+.request-card .download-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
 .request-item, .request-section { border-top: 1px solid #dce2e9; margin-top: 24px; padding-top: 20px; }
 .request-card h2 { font-size: 20px; overflow-wrap: anywhere; }
 .button-link { display: inline-block; padding: 10px 16px; background: #205b91; color: white; border-radius: 5px; text-decoration: none; }
